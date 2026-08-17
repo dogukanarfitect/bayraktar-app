@@ -1,9 +1,11 @@
 import { useState, type ReactNode } from 'react';
-import { Alert, Animated, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Animated, Image, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { requireOptionalNativeModule } from 'expo-modules-core';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../components';
 import { colors } from '../theme';
+import { trUpper } from '../turkishText';
 import type { IconName } from '../types';
 
 type PageProps = { onClose: () => void };
@@ -65,7 +67,7 @@ export function SafetyTrainingPage({ onClose }: PageProps) {
     <SafetyPage title="İSG Eğitimleri" onClose={onClose}>
       <View className="px-5 pt-5">
         <View className="rounded-[22px] border-[0.5px] border-line bg-white px-4 py-4">
-          <View className="flex-row items-end justify-between"><View><Text className="text-[8px] font-medium uppercase tracking-[0.8px] text-muted">Eğitim ilerlemesi</Text><Text className="mt-2 text-[13px] font-medium text-ink">Planınız devam ediyor</Text></View><Text className="text-[23px] font-medium text-brand">%{averageProgress}</Text></View>
+          <View className="flex-row items-end justify-between"><View><Text className="text-[8px] font-medium tracking-[0.8px] text-muted">{trUpper('Eğitim ilerlemesi')}</Text><Text className="mt-2 text-[13px] font-medium text-ink">Planınız devam ediyor</Text></View><Text className="text-[23px] font-medium text-brand">%{averageProgress}</Text></View>
           <View className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#EDE9E4]"><View className="h-full rounded-full bg-brand" style={{ width: `${averageProgress}%` }} /></View>
           <View className="mt-3 flex-row items-center justify-between"><Text className="text-[8px] text-muted">{completedCount} tamamlandı · {trainingItems.length - completedCount} bekliyor</Text><Text className="text-[8px] text-muted">{trainingItems.length} modül</Text></View>
         </View>
@@ -198,9 +200,11 @@ export function RiskReportPage({ onClose }: PageProps) {
   const [category, setCategory] = useState('Risk');
   const [categoryBarWidth, setCategoryBarWidth] = useState(0);
   const categoryPosition = useState(() => new Animated.Value(0))[0];
-  const [priority, setPriority] = useState('Orta');
+  const [, setPriority] = useState('Düşük');
+  const [priorityBarWidth, setPriorityBarWidth] = useState(0);
+  const priorityPosition = useState(() => new Animated.Value(0))[0];
   const [note, setNote] = useState('');
-  const [photoAdded, setPhotoAdded] = useState(false);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const categories: { label: string; tabLabel: string; desc: string; icon: IconName }[] = [
     { label: 'Risk', tabLabel: 'Risk', desc: 'Tehlikeli durum', icon: 'shield' },
@@ -211,7 +215,7 @@ export function RiskReportPage({ onClose }: PageProps) {
   const priorities = ['Düşük', 'Orta', 'Yüksek'];
   const priorityColors: Record<string, { active: string; inactive: string; label: string; selectedLabel: string }> = {
     Düşük: { active: '#168068', inactive: '#EAF5F1', label: '#168068', selectedLabel: '#FFFFFF' },
-    Orta: { active: '#F2C94C', inactive: '#FFF8D9', label: '#171717', selectedLabel: '#171717' },
+    Orta: { active: '#F2C94C', inactive: '#FFF8D9', label: '#171717', selectedLabel: '#FFFFFF' },
     Yüksek: { active: '#C9251B', inactive: '#FDEDEC', label: '#C9251B', selectedLabel: '#FFFFFF' },
   };
   const selectedCategory = categories.find((item) => item.label === category) ?? categories[0];
@@ -219,6 +223,39 @@ export function RiskReportPage({ onClose }: PageProps) {
   const selectCategory = (item: string, index: number) => {
     setCategory(item);
     Animated.spring(categoryPosition, { toValue: index, damping: 18, stiffness: 190, mass: 0.8, useNativeDriver: true }).start();
+  };
+
+  const selectPriority = (item: string, index: number) => {
+    setPriority(item);
+    Animated.spring(priorityPosition, { toValue: index, damping: 18, stiffness: 190, mass: 0.8, useNativeDriver: false }).start();
+  };
+
+  const pickPhoto = async () => {
+    const nativeImagePicker = requireOptionalNativeModule('ExponentImagePicker');
+    if (!nativeImagePicker) {
+      Alert.alert('Galeri henüz hazır değil', 'Fotoğraf seçme özelliği yeni uygulama sürümünde etkinleşecek.');
+      return;
+    }
+
+    try {
+      const ImagePicker = await import('expo-image-picker');
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Galeri izni gerekli', 'Bildirim fotoğrafını seçebilmek için fotoğraf arşivi erişimine izin verin.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]?.uri) setPhotoUri(result.assets[0].uri);
+    } catch {
+      Alert.alert('Fotoğraf seçilemedi', 'Galeri şu anda açılamadı. Lütfen yeniden deneyin.');
+    }
   };
 
   return (
@@ -231,12 +268,12 @@ export function RiskReportPage({ onClose }: PageProps) {
     >
       <View className="px-5 pt-5">
         {submitted ? (
-          <View className="items-center rounded-[26px] border-[0.5px] border-line bg-white px-5 py-10"><View className="h-16 w-16 items-center justify-center rounded-full bg-[#EAF5F1]"><Icon name="check" size={29} color={colors.green} /></View><Text className="mt-6 text-[21px] font-medium text-ink">Bildiriminiz alındı</Text><Text className="mt-3 max-w-[290px] text-center text-[10px] leading-[16px] text-muted">İSG ekibi kaydınızı öncelik seviyesine göre inceleyerek sizinle iletişime geçecek.</Text><View className="mt-6 w-full rounded-[16px] bg-[#F3F0EC] px-4 py-3"><Text className="text-center text-[9px] text-muted">Kayıt no · İSG-170826-14</Text></View><Pressable onPress={onClose} className="mt-6 h-[50px] w-full items-center justify-center rounded-[17px] bg-success"><Text className="text-[11px] font-medium text-white">Tamam</Text></Pressable></View>
+          <View className="items-center rounded-[26px] border-[0.5px] border-line bg-white px-5 py-10"><View className="h-16 w-16 items-center justify-center rounded-full bg-[#EAF5F1]"><Icon name="check" size={29} color={colors.green} /></View><Text className="mt-6 text-[21px] font-medium text-ink">Bildiriminiz gönderildi</Text><Text className="mt-3 max-w-[290px] text-center text-[10px] leading-[16px] text-muted">İSG ekibi kaydınızı öncelik seviyesine göre inceleyerek sizinle iletişime geçecek.</Text><View className="mt-6 w-full overflow-hidden rounded-[16px] bg-[#F3F0EC]"><View className="flex-row items-center justify-between px-4 py-3"><Text className="text-[9px] text-muted">Kayıt no</Text><Text className="text-[9px] font-medium text-ink">İSG-170826-14</Text></View>{photoUri ? <View className="flex-row items-center gap-2 border-t-[0.5px] border-line px-4 py-3"><Icon name="check" size={14} color={colors.green} /><Text className="text-[9px] text-muted">Fotoğraf bildirime eklendi</Text></View> : null}</View><Pressable onPress={onClose} className="mt-6 h-[50px] w-full items-center justify-center rounded-[17px] bg-success"><Text className="text-[11px] font-medium text-white">Tamam</Text></Pressable></View>
         ) : (
           <>
             <View className="flex-row items-start gap-3 border-l-[3px] border-[#C9251B] bg-[#FFF8F7] px-4 py-3.5"><Icon name="warning" size={18} color="#C9251B" /><View className="flex-1"><Text className="text-[10.5px] font-medium text-ink">Acil tehlike devam ediyor mu?</Text><Text className="mt-1.5 text-[9px] leading-[14px] text-muted">Önce güvenli alana geçin. Hayati tehlike varsa bu form yerine SOS’u kullanın.</Text></View></View>
 
-            <View className="mt-6 flex-row items-center justify-between"><Text className="text-[9px] font-semibold uppercase tracking-[0.9px] text-muted">Bildirim türü</Text><Text className="text-[8px] text-muted">Zorunlu alan</Text></View>
+            <View className="mt-6 flex-row items-center justify-between"><Text className="text-[9px] font-semibold tracking-[0.9px] text-muted">{trUpper('Bildirim türü')}</Text><Text className="text-[8px] text-muted">Zorunlu alan</Text></View>
             <View onLayout={(event) => setCategoryBarWidth(event.nativeEvent.layout.width)} className="relative mt-3 flex-row rounded-[14px] bg-[#EDE9E3] p-0.5">
               {categoryBarWidth > 0 ? (
                 <Animated.View
@@ -260,25 +297,48 @@ export function RiskReportPage({ onClose }: PageProps) {
             </View>
             <View className="mt-3 flex-row items-center gap-2 px-1"><Icon name={selectedCategory.icon} size={15} color={colors.green} /><Text className="text-[8.5px] text-muted"><Text className="font-medium text-ink">{selectedCategory.label}</Text> · {selectedCategory.desc}</Text></View>
 
-            <Text className="mt-6 text-[9px] font-semibold uppercase tracking-[0.9px] text-muted">Öncelik seviyesi</Text>
-            <View className="mt-3 flex-row gap-0.5 rounded-[14px] border-[0.5px] border-line bg-white p-0.5">
-              {priorities.map((item) => {
-                const selected = priority === item;
+            <Text className="mt-6 text-[9px] font-semibold tracking-[0.9px] text-muted">{trUpper('Öncelik seviyesi')}</Text>
+            <View onLayout={(event) => setPriorityBarWidth(event.nativeEvent.layout.width)} className="relative mt-3 flex-row gap-0.5 rounded-[14px] border-[0.5px] border-line bg-white p-0.5">
+              <View pointerEvents="none" className="absolute inset-0.5 flex-row gap-0.5">
+                {priorities.map((item) => <View key={item} className="flex-1 rounded-[11px]" style={{ backgroundColor: priorityColors[item].inactive }} />)}
+              </View>
+              {priorityBarWidth > 0 ? (
+                <Animated.View
+                  pointerEvents="none"
+                  className="absolute bottom-0.5 top-0.5 rounded-[11px]"
+                  style={{
+                    left: 2,
+                    width: (priorityBarWidth - 4) / priorities.length,
+                    backgroundColor: priorityPosition.interpolate({ inputRange: [0, 1, 2], outputRange: [priorityColors.Düşük.active, priorityColors.Orta.active, priorityColors.Yüksek.active] }),
+                    transform: [{ translateX: priorityPosition.interpolate({ inputRange: [0, priorities.length - 1], outputRange: [0, ((priorityBarWidth - 4) / priorities.length) * (priorities.length - 1)] }) }],
+                  }}
+                />
+              ) : null}
+              {priorities.map((item, index) => {
                 const palette = priorityColors[item];
                 return (
-                  <Pressable key={item} onPress={() => setPriority(item)} className="h-9 flex-1 items-center justify-center rounded-[11px]" style={{ backgroundColor: selected ? palette.active : palette.inactive }}>
-                    <Text className="text-[9px] font-semibold" style={{ color: selected ? palette.selectedLabel : palette.label }}>{item}</Text>
+                  <Pressable key={item} onPress={() => selectPriority(item, index)} className="z-10 h-9 flex-1 items-center justify-center rounded-[11px]">
+                    <Animated.Text
+                      className="text-[9px] font-semibold"
+                      style={{ color: priorityPosition.interpolate({ inputRange: [0, 1, 2], outputRange: priorities.map((_, positionIndex) => positionIndex === index ? palette.selectedLabel : palette.label) }) }}
+                    >
+                      {item}
+                    </Animated.Text>
                   </Pressable>
                 );
               })}
             </View>
 
-            <View className="mt-4 rounded-[20px] border-[0.5px] border-line bg-white p-4"><View className="flex-row items-center justify-between"><Text className="text-[9px] font-semibold uppercase tracking-[0.9px] text-muted">Açıklama</Text><Text className="text-[8.5px] text-muted">{note.length}/500</Text></View><TextInput value={note} onChangeText={(value) => setNote(value.slice(0, 500))} multiline placeholder="Ne olduğunu, nerede gördüğünüzü ve varsa devam eden riski açıklayın…" placeholderTextColor="#9A9690" textAlignVertical="top" className="mt-3 min-h-[135px] text-[11px] leading-[18px] text-ink" /></View>
+            <View className="mt-4 rounded-[20px] border-[0.5px] border-line bg-white p-4"><View className="flex-row items-center justify-between"><Text className="text-[9px] font-semibold tracking-[0.9px] text-muted">{trUpper('Açıklama')}</Text><Text className="text-[8.5px] text-muted">{note.length}/500</Text></View><TextInput value={note} onChangeText={(value) => setNote(value.slice(0, 500))} multiline placeholder="Ne olduğunu, nerede gördüğünüzü ve varsa devam eden riski açıklayın…" placeholderTextColor="#9A9690" textAlignVertical="top" className="mt-3 min-h-[135px] text-[11px] leading-[18px] text-ink" /></View>
 
-            <Text className="mt-5 text-[9px] font-semibold uppercase tracking-[0.9px] text-muted">Ek bilgiler</Text>
+            <Text className="mt-5 text-[9px] font-semibold tracking-[0.9px] text-muted">{trUpper('Ek bilgiler')}</Text>
             <View className="mt-3 overflow-hidden rounded-[18px] border-[0.5px] border-line bg-white">
               <View className="min-h-[62px] flex-row items-center gap-3 border-b-[0.5px] border-line px-4"><Icon name="location" size={18} color={colors.green} /><View className="flex-1"><Text className="text-[9px] text-muted">Olay konumu</Text><Text className="mt-1 text-[10.5px] font-medium text-ink">Tesis 2 · Üretim Alanı</Text></View><Text className="text-[8.5px] font-medium text-success">Hazır</Text></View>
-              <Pressable onPress={() => setPhotoAdded((current) => !current)} className="min-h-[62px] flex-row items-center gap-3 px-4 active:bg-[#F7F5F1]"><Icon name={photoAdded ? 'check' : 'plus'} size={18} color={photoAdded ? colors.green : colors.brand} /><View className="flex-1"><Text className="text-[10.5px] font-medium text-ink">{photoAdded ? 'Fotoğraf eklendi' : 'Fotoğraf ekle'}</Text><Text className="mt-1 text-[8.5px] text-muted">{photoAdded ? 'Görsel bildirime dahil edilecek.' : 'Değerlendirmeyi hızlandırır.'}</Text></View><Icon name="chevronRight" size={17} color={colors.muted} /></Pressable>
+              <Pressable onPress={pickPhoto} className="min-h-[70px] flex-row items-center gap-3 px-4 py-2 active:bg-[#F7F5F1]">
+                {photoUri ? <Image source={{ uri: photoUri }} className="h-[50px] w-[50px] rounded-[12px] bg-[#EEE9E3]" resizeMode="cover" /> : <View className="h-[42px] w-[42px] items-center justify-center rounded-[12px] bg-[#F7ECEF]"><Icon name="plus" size={18} color={colors.brand} /></View>}
+                <View className="flex-1"><Text className="text-[10.5px] font-medium text-ink">{photoUri ? 'Fotoğraf eklendi' : 'Albümden fotoğraf seç'}</Text><Text className="mt-1 text-[8.5px] text-muted">{photoUri ? 'Değiştirmek için dokunun.' : 'JPG veya PNG görsel ekleyin.'}</Text></View>
+                <Icon name={photoUri ? 'check' : 'chevronRight'} size={17} color={photoUri ? colors.green : colors.muted} />
+              </Pressable>
             </View>
           </>
         )}

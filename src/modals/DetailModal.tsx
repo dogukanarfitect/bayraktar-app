@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, NativeLinearGradient } from '../components';
 import { detailContent, newsItems, recognitionMembers, surveyQuestions } from '../data';
 import { colors } from '../theme';
+import { trLower, trUpper } from '../turkishText';
 import type { IconName, ModalId, NewsItem } from '../types';
 import { doctorDays, employeeDocuments, employeePayrollSummary, DoctorSchedulePage, DocumentsPage, EmployeeCalendarPage, EmployeeInfoPage, FeedbackPage, PayrollPage } from './EmployeeServicesPages';
 import { emergencyContacts, trainingItems, EmergencyPhonesPage, RiskReportPage, SafetyDocumentsPage, SafetyTrainingPage } from './SafetyServicePages';
@@ -393,7 +394,7 @@ function AiChatPage({ onClose, onNavigate, conversation, setConversation }: { on
                   resizeMode="contain"
                   style={{ width: 18, height: 18, tintColor: colors.brand }}
                 />
-                <Text className="text-[9px] font-semibold uppercase tracking-[0.9px] text-brand">{AI_ASSISTANT_NAME}</Text>
+                <Text className="text-[9px] font-semibold tracking-[0.9px] text-brand">{trUpper(AI_ASSISTANT_NAME)}</Text>
               </View>
               <Text className="text-[12px] leading-5 text-[#3F3C39]">
                 {message.text}
@@ -540,7 +541,7 @@ function FoodMenuPage({ onClose }: { onClose: () => void }) {
               className="absolute inset-0"
             />
             <View className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-[7px]">
-              <Text className="text-[8px] font-semibold uppercase tracking-[1px] text-brand">{selectedMenu.today ? 'Bugün' : selectedMenu.day}</Text>
+              <Text className="text-[8px] font-semibold tracking-[1px] text-brand">{trUpper(selectedMenu.today ? 'Bugün' : selectedMenu.day)}</Text>
             </View>
             <View className="absolute bottom-5 left-5 right-5">
               <Text className="text-[25px] font-medium tracking-[-0.5px] text-white">{selectedMenu.title}</Text>
@@ -571,7 +572,7 @@ function FoodMenuPage({ onClose }: { onClose: () => void }) {
               <View key={item.name} className={`flex-row items-center gap-4 p-3 ${index === selectedMenu.items.length - 1 ? '' : 'border-b-[0.5px] border-line'}`}>
                 <Image source={item.image} className="h-[74px] w-[82px] rounded-[16px] bg-[#EEE9E3]" resizeMode="cover" />
                 <View className="flex-1 py-1">
-                  <Text className="text-[8px] font-semibold uppercase tracking-[0.9px] text-brand">{item.category}</Text>
+                  <Text className="text-[8px] font-semibold tracking-[0.9px] text-brand">{trUpper(item.category)}</Text>
                   <Text className="mt-2 text-[13px] font-medium leading-[18px] text-ink">{item.name}</Text>
                   <Text className="mt-2 text-[9px] text-muted">{item.calories}</Text>
                 </View>
@@ -884,7 +885,7 @@ function NotificationsPage({ onClose, onNavigate, unreadIds, setUnreadIds }: { o
             if (items.length === 0) return null;
             return (
               <View key={group} className="mt-6">
-                <Text className="mb-3 text-[9px] font-semibold uppercase tracking-[1.1px] text-muted">{group}</Text>
+                <Text className="mb-3 text-[9px] font-semibold tracking-[1.1px] text-muted">{trUpper(group)}</Text>
                 <View className="overflow-hidden rounded-[22px] border-[0.5px] border-line bg-white">
                   {items.map((item, index) => {
                     const unread = unreadIds.includes(item.id);
@@ -925,13 +926,13 @@ function NewsDetailPage({ item, onClose }: { item: NewsItem; onClose: () => void
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 28, 44) }}>
-        <View className="mx-5 mt-2 h-[258px] overflow-hidden rounded-[26px] bg-[#E9E5DF]">
+        <View className="mx-5 mt-2 h-[258px] overflow-hidden rounded-[14px] bg-[#E9E5DF]">
           <Image source={{ uri: item.image }} className="h-full w-full" resizeMode="cover" />
         </View>
 
         <View className="px-5 pt-6">
           <View className="flex-row items-center gap-[9px]">
-            <Text className="text-[9px] font-semibold uppercase tracking-[1px] text-brand">{item.category}</Text>
+            <Text className="text-[9px] font-semibold tracking-[1px] text-brand">{trUpper(item.category)}</Text>
             <View className="h-[3px] w-[3px] rounded-full bg-[#C9C4BE]" />
             <Text className="text-[9px] text-muted">{item.date}</Text>
           </View>
@@ -952,7 +953,7 @@ function NewsDetailPage({ item, onClose }: { item: NewsItem; onClose: () => void
 }
 
 function getBayraResponse(message: string): BayraResponse {
-  const normalized = message.toLocaleLowerCase('tr-TR');
+  const normalized = trLower(message);
   const todayMenu = weeklyFoodMenus.find((menu) => menu.today) ?? weeklyFoodMenus[0];
   const activeDoctor = doctorDays.find((day) => day.active) ?? doctorDays[0];
   const activeTraining = trainingItems.find((training) => training.progress > 0 && training.progress < 100) ?? trainingItems.find((training) => training.progress < 100);
@@ -999,7 +1000,7 @@ function getBayraResponse(message: string): BayraResponse {
 }
 
 function getHrChatResponse(message: string) {
-  const normalized = message.toLocaleLowerCase('tr-TR');
+  const normalized = trLower(message);
   if (normalized.includes('izin')) return '2026 yılı için 9 gün kullanılabilir yıllık izniniz bulunuyor. İsterseniz izin talebi oluşturmanız için izlemeniz gereken adımları da paylaşabilirim.';
   if (normalized.includes('bordro') || normalized.includes('maaş')) return 'Güncel ve geçmiş bordrolarınıza Profil > Bordro ve Özlük alanından ulaşabilirsiniz. Belgeyle ilgili bir sorun yaşarsanız buradan kayıt oluşturabilirim.';
   if (normalized.includes('özlük') || normalized.includes('bilgi') || normalized.includes('güncelle')) return 'Özlük bilgilerinizin güncellenmesi için talebinizi aldım. Değiştirmek istediğiniz bilgiyi yazarsanız gerekli belge ve adımları paylaşabilirim.';
@@ -1118,7 +1119,7 @@ function SurveyPage({ onClose }: { onClose: () => void }) {
       <ScrollView ref={surveyScrollRef} className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
         <View className="px-5 pt-5">
           <View className="flex-row items-center justify-between">
-            <Text className="text-[8px] font-semibold uppercase tracking-[1px] text-muted">Çalışan deneyimi</Text>
+            <Text className="text-[8px] font-semibold tracking-[1px] text-muted">{trUpper('Çalışan deneyimi')}</Text>
             <Text className="text-[9px] font-medium text-brand">Soru {step + 1} / {surveyQuestions.length}</Text>
           </View>
           <View className="mt-3 h-1 overflow-hidden rounded-full bg-[#E9E4DE]">
@@ -1137,7 +1138,7 @@ function SurveyPage({ onClose }: { onClose: () => void }) {
             }}
           >
             <View className="pb-5 pt-8">
-              <Text className="text-[8px] font-semibold uppercase tracking-[1px] text-brand">{String(step + 1).padStart(2, '0')}. soru</Text>
+              <Text className="text-[8px] font-semibold tracking-[1px] text-brand">{trUpper(`${String(step + 1).padStart(2, '0')}. soru`)}</Text>
               <Text className="mt-3 text-[22px] font-medium leading-[29px] tracking-[-0.4px] text-ink">{surveyQuestions[step]}</Text>
               <Text className="mt-3 text-[9px] text-muted">Size en yakın yanıtı seçin.</Text>
             </View>
@@ -1164,7 +1165,7 @@ function SurveyPage({ onClose }: { onClose: () => void }) {
           </Animated.View>
 
           <View className="mt-5 border-t-[0.5px] border-line pt-4">
-            <Text className="text-[8px] font-semibold uppercase tracking-[0.8px] text-green">Gizli değerlendirme</Text>
+            <Text className="text-[8px] font-semibold tracking-[0.8px] text-green">{trUpper('Gizli değerlendirme')}</Text>
             <Text className="mt-2 text-[8.5px] leading-[14px] text-muted">Yanıtlar bireysel olarak görüntülenmez; yalnızca ekip düzeyinde toplu değerlendirilir.</Text>
           </View>
         </View>
@@ -1199,7 +1200,7 @@ function SurveyCompletion({ answeredCount, onClose, bottomInset }: { answeredCou
         <View className="overflow-hidden rounded-[24px] border-[0.5px] border-line bg-white">
           <View className="h-1 bg-green" />
           <View className="px-5 py-6">
-            <View className="flex-row items-center gap-2"><View className="h-7 w-7 items-center justify-center rounded-full bg-[#EAF5F1]"><Icon name="check" size={14} color={colors.green} /></View><Text className="text-[8.5px] font-medium uppercase tracking-[0.7px] text-green">Anket tamamlandı</Text></View>
+            <View className="flex-row items-center gap-2"><View className="h-7 w-7 items-center justify-center rounded-full bg-[#EAF5F1]"><Icon name="check" size={14} color={colors.green} /></View><Text className="text-[8.5px] font-medium tracking-[0.7px] text-green">{trUpper('Anket tamamlandı')}</Text></View>
             <Text className="mt-6 max-w-[300px] text-[25px] font-medium leading-[31px] tracking-[-0.5px] text-ink">Katılımınız için teşekkürler.</Text>
             <Text className="mt-3 max-w-[320px] text-[9.5px] leading-[15px] text-muted">Yanıtlarınız kaydedildi ve çalışma deneyimini geliştirmek üzere toplu değerlendirmeye alındı.</Text>
 

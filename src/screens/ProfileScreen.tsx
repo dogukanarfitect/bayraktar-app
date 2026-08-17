@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import { Icon, NativeLinearGradient, ScreenScrollView, SectionTitle, StripedBackground } from '../components';
 import { colors } from '../theme';
+import { trUpper } from '../turkishText';
 import type { IconName, ModalId } from '../types';
 
 const profileTools: { id: ModalId; title: string; desc: string; icon: IconName; accent: string }[] = [
@@ -63,7 +64,7 @@ export function ProfileScreen({ header, onOpen, onLogout }: { header: ReactNode;
 function ProfileDetailRow({ label, value, detail, last = false }: { label: string; value: string; detail: string; last?: boolean }) {
   return (
     <View className={`min-h-[66px] flex-row items-center justify-between gap-5 px-4 ${last ? '' : 'border-b-[0.5px] border-line'}`}>
-      <Text className="text-[8px] font-medium uppercase tracking-[0.55px] text-muted">{label}</Text>
+      <Text className="text-[8px] font-medium tracking-[0.55px] text-muted">{trUpper(label)}</Text>
       <View className="flex-1 items-end"><Text className="text-right text-[10.5px] font-medium text-ink">{value}</Text><Text className="mt-1 text-right text-[8px] text-muted">{detail}</Text></View>
     </View>
   );

@@ -5,6 +5,7 @@ import MapView, { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../components';
 import { colors } from '../theme';
+import { trUpper } from '../turkishText';
 
 const serviceCompanies = [
   {
@@ -110,7 +111,7 @@ export function ServiceRoutesPage({ onClose }: { onClose: () => void }) {
             <View className="rounded-[21px] border-[0.5px] border-line bg-white px-5 py-[18px]">
               <View className="flex-row items-center justify-between">
                 <Text className="text-[8.5px] font-medium text-green">Planlanan sefer</Text>
-                <Text className="text-[8px] font-medium uppercase tracking-[0.8px] text-muted">Bugün</Text>
+                <Text className="text-[8px] font-medium tracking-[0.8px] text-muted">{trUpper('Bugün')}</Text>
               </View>
 
               <View className="mt-4 flex-row items-end justify-between gap-4">

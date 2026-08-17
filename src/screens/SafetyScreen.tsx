@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, Easing, Platform, Pressable, Text, Vibration, View } from 'react-native';
 import { Icon, ScreenScrollView } from '../components';
 import { colors } from '../theme';
+import { trUpper } from '../turkishText';
 import type { IconName, ModalId } from '../types';
 
 type SafetyScreenProps = {
@@ -11,11 +12,11 @@ type SafetyScreenProps = {
   onOpen: (id: ModalId) => void;
 };
 
-const tools: { id: ModalId; label: string; desc: string; meta: string; icon: IconName; accent: string; surface: string }[] = [
-  { id: 'emergencyPhones', label: 'Acil Telefonlar', desc: '112 ve tesis dahili hatları', meta: 'ACİL', icon: 'phone', accent: '#C9251B', surface: '#FDEDEC' },
-  { id: 'riskReport', label: 'Risk veya Olay Bildir', desc: 'Sahadaki uygunsuzluğu İSG’ye iletin', meta: 'FORM', icon: 'warning', accent: '#A85A12', surface: '#FFF3E7' },
-  { id: 'safetyTraining', label: 'İSG Eğitimleri', desc: 'Atanmış eğitimleri görüntüleyin', meta: '3 MODÜL', icon: 'education', accent: '#416B83', surface: '#ECF2F5' },
-  { id: 'safetyDocs', label: 'Prosedür ve Talimatlar', desc: 'Güncel saha dokümanlarına ulaşın', meta: '4 BELGE', icon: 'procedure', accent: '#168068', surface: '#EAF5F1' },
+const tools: { id: ModalId; label: string; desc: string; icon: IconName; accent: string; surface: string }[] = [
+  { id: 'emergencyPhones', label: 'Acil Telefonlar', desc: '112 ve tesis dahili hatları', icon: 'phone', accent: '#C9251B', surface: '#FDEDEC' },
+  { id: 'riskReport', label: 'Risk veya Olay Bildir', desc: 'Sahadaki uygunsuzluğu İSG’ye iletin', icon: 'warning', accent: '#A85A12', surface: '#FFF3E7' },
+  { id: 'safetyTraining', label: 'İSG Eğitimleri', desc: 'Atanmış eğitimleri görüntüleyin', icon: 'education', accent: '#416B83', surface: '#ECF2F5' },
+  { id: 'safetyDocs', label: 'Prosedür ve Talimatlar', desc: 'Güncel saha dokümanlarına ulaşın', icon: 'procedure', accent: '#168068', surface: '#EAF5F1' },
 ];
 
 export function SafetyScreen({ header, active, onToggle, onOpen }: SafetyScreenProps) {
@@ -104,7 +105,7 @@ export function SafetyScreen({ header, active, onToggle, onOpen }: SafetyScreenP
       {header}
       <View className="pb-[124px] pt-[18px]">
         <View>
-          <Text className="text-[9px] uppercase tracking-[1.2px] text-muted">Acil Durum ve İSG</Text>
+          <Text className="text-[9px] tracking-[1.2px] text-muted">{trUpper('Acil Durum ve İSG')}</Text>
           <Text className="mt-[7px] text-[29px] font-light tracking-[-0.6px] text-ink">SOS Merkezi</Text>
           <Text className="mt-2 text-[11px] leading-[16px] text-muted">Acil durumda ekiplere hızlıca haber verin.</Text>
         </View>
@@ -180,7 +181,7 @@ export function SafetyScreen({ header, active, onToggle, onOpen }: SafetyScreenP
           <Text className="mt-2 max-w-[286px] text-center text-[10.5px] leading-[16px] text-muted">{active ? 'Paylaşımı durdurmak için butona 1 saniye basılı tutun.' : 'Yanlış dokunmaları önlemek için SOS butonuna 1 saniye basılı tutun.'}</Text>
         </View>
 
-        <Text className="mb-3 mt-1 text-[9px] uppercase tracking-[1.1px] text-muted">Durum Bilgileri</Text>
+        <Text className="mb-3 mt-1 text-[9px] tracking-[1.1px] text-muted">{trUpper('Durum Bilgileri')}</Text>
         <View className="overflow-hidden rounded-[20px] border-[0.5px] border-line bg-white">
           {statusRows.map(([label, value], index) => (
             <View key={label} className={`min-h-[52px] flex-row items-center justify-between border-line px-4 ${index === statusRows.length - 1 ? 'border-b-0' : 'border-b-[0.5px]'}`}>
@@ -212,10 +213,7 @@ export function SafetyScreen({ header, active, onToggle, onOpen }: SafetyScreenP
                 <Text className="text-[11.5px] font-medium tracking-[-0.1px] text-ink">{tool.label}</Text>
                 <Text className="mt-1.5 text-[8.5px] leading-[13px] text-muted">{tool.desc}</Text>
               </View>
-              <View className="items-end gap-2">
-                <Text className="text-[7.5px] font-semibold tracking-[0.7px]" style={{ color: tool.accent }}>{tool.meta}</Text>
-                <Icon name="chevronRight" size={17} color="#AAA5A0" />
-              </View>
+              <Icon name="chevronRight" size={17} color="#AAA5A0" />
             </Pressable>
           ))}
         </View>

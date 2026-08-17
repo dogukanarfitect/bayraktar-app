@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, NativeLinearGradient } from '../components';
 import { colors } from '../theme';
+import { trUpper } from '../turkishText';
 
 type PageProps = { onClose: () => void };
 
@@ -80,7 +81,7 @@ function SectionLabel({ title, action }: { title: string; action?: string }) {
 function EmployeeDetailRow({ label, value, detail, last = false }: { label: string; value: string; detail?: string; last?: boolean }) {
   return (
     <View className={`min-h-[66px] flex-row items-center justify-between gap-5 px-5 ${last ? '' : 'border-b-[0.5px] border-line'}`}>
-      <Text className="text-[8.5px] font-medium uppercase tracking-[0.55px] text-muted">{label}</Text>
+      <Text className="text-[8.5px] font-medium tracking-[0.55px] text-muted">{trUpper(label)}</Text>
       <View className="flex-1 items-end">
         <Text className="text-right text-[11.5px] font-medium text-ink">{value}</Text>
         {detail ? <Text className="mt-1 text-right text-[8.5px] text-muted">{detail}</Text> : null}
@@ -97,7 +98,7 @@ export function EmployeeInfoPage({ onClose }: PageProps) {
           <View className="h-1 bg-brand" />
           <View className="px-5 pb-5 pt-5">
             <View className="flex-row items-center justify-between">
-              <Text className="text-[7.5px] font-semibold uppercase tracking-[1.2px] text-muted">Çalışan profili</Text>
+              <Text className="text-[7.5px] font-semibold tracking-[1.2px] text-muted">{trUpper('Çalışan profili')}</Text>
               <View className="flex-row items-center gap-2"><View className="h-2 w-2 rounded-full bg-green" /><Text className="text-[8px] font-medium text-green">Aktif</Text></View>
             </View>
 
@@ -141,7 +142,7 @@ export function EmployeeCalendarPage({ onClose }: PageProps) {
   const month = monthDate.getMonth();
   const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
   const rawMonthTitle = monthDate.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
-  const monthTitle = rawMonthTitle.charAt(0).toLocaleUpperCase('tr-TR') + rawMonthTitle.slice(1);
+  const monthTitle = trUpper(rawMonthTitle.charAt(0)) + rawMonthTitle.slice(1);
   const monthEvents = calendarEvents.filter((event) => event.monthKey === monthKey);
   const visibleEvents = selectedDay === null ? monthEvents : monthEvents.filter((event) => Number(event.date) === selectedDay);
   const eventDays = new Set(monthEvents.map((event) => Number(event.date)));
@@ -239,7 +240,7 @@ export function DoctorSchedulePage({ onClose }: PageProps) {
     <ServicePage title="Doktor Takvimi" onClose={onClose}>
       <View className="px-5 pt-5">
         <View className="rounded-[20px] border-[0.5px] border-line bg-white px-4 py-4">
-          <View className="flex-row items-center justify-between"><Text className="text-[8px] font-semibold uppercase tracking-[0.8px] text-green">Revir açık</Text><Text className="text-[8.5px] text-muted">16:00’ya kadar</Text></View>
+          <View className="flex-row items-center justify-between"><Text className="text-[8px] font-semibold tracking-[0.8px] text-green">{trUpper('Revir açık')}</Text><Text className="text-[8.5px] text-muted">16:00’ya kadar</Text></View>
           <View className="my-3.5 h-[0.5px] bg-line" />
           <View className="flex-row items-center justify-between gap-4">
             <View className="flex-1 flex-row items-center gap-3"><View className="h-9 w-9 items-center justify-center rounded-full bg-[#EAF5F1]"><Icon name="stethoscope" size={16} color={colors.green} /></View><View className="flex-1"><Text className="text-[14px] font-medium text-ink">Dr. Ayşe Akın</Text><Text className="mt-1.5 text-[8.5px] text-muted">İşyeri Hekimi</Text></View></View>
@@ -259,7 +260,7 @@ export function DoctorSchedulePage({ onClose }: PageProps) {
                 >
                   {selected ? <View className="absolute bottom-3 left-0 top-3 w-[3px] rounded-r-full bg-brand" /> : null}
                   <View className="w-[48px] items-center border-r-[0.5px] border-line pr-3">
-                    <Text className={`text-[7.5px] font-semibold uppercase tracking-[0.6px] ${selected ? 'text-brand' : 'text-muted'}`}>{item.active ? 'Bugün' : item.day.slice(0, 3)}</Text>
+                    <Text className={`text-[7.5px] font-semibold tracking-[0.6px] ${selected ? 'text-brand' : 'text-muted'}`}>{trUpper(item.active ? 'Bugün' : item.day.slice(0, 3))}</Text>
                     <Text className={`mt-1 text-[17px] font-medium ${selected ? 'text-brand' : 'text-ink'}`}>{item.date.split(' ')[0]}</Text>
                   </View>
                   <View className="ml-4 flex-1">
@@ -389,20 +390,20 @@ export function PayrollPage({ onClose }: PageProps) {
         <View className="overflow-hidden rounded-[24px] border-[0.5px] border-[#D8C2C9] bg-white">
           <NativeLinearGradient colors={['#A83252', '#7A1D37']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} className="px-5 pb-5 pt-5">
             <View className="flex-row items-center justify-between">
-              <Text className="text-[9px] font-semibold uppercase tracking-[1px] text-white/70">{employeePayrollSummary.month}</Text>
-              <View className="flex-row items-center gap-1.5 rounded-full bg-white/12 px-3 py-1.5"><View className="h-1.5 w-1.5 rounded-full bg-[#8BE0BE]" /><Text className="text-[7.5px] font-medium uppercase tracking-[0.6px] text-white">Hazır</Text></View>
+              <Text className="text-[9px] font-semibold tracking-[1px] text-white/70">{trUpper(employeePayrollSummary.month)}</Text>
+              <View className="flex-row items-center gap-1.5 rounded-full bg-white/12 px-3 py-1.5"><View className="h-1.5 w-1.5 rounded-full bg-[#8BE0BE]" /><Text className="text-[7.5px] font-medium tracking-[0.6px] text-white">{trUpper('Hazır')}</Text></View>
             </View>
             <Text className="mt-6 text-[9px] text-white/65">Net ödeme</Text>
             <Text className="mt-2 text-[27px] font-medium tracking-[-0.5px] text-white">{employeePayrollSummary.netAmount}</Text>
           </NativeLinearGradient>
           <View className="min-h-[66px] flex-row items-center px-4">
-            <View className="flex-1"><Text className="text-[7.5px] uppercase tracking-[0.6px] text-muted">Düzenlenme tarihi</Text><Text className="mt-1.5 text-[9.5px] font-medium text-ink">{employeePayrollSummary.readyDate}</Text></View>
+            <View className="flex-1"><Text className="text-[7.5px] tracking-[0.6px] text-muted">{trUpper('Düzenlenme tarihi')}</Text><Text className="mt-1.5 text-[9.5px] font-medium text-ink">{employeePayrollSummary.readyDate}</Text></View>
             <Pressable onPress={() => setDownloaded(true)} className="h-9 flex-row items-center gap-1.5 rounded-[11px] px-3 active:opacity-60" style={{ backgroundColor: downloaded ? '#EAF5F1' : '#F7ECEF' }}><Icon name={downloaded ? 'check' : 'download'} size={14} color={downloaded ? colors.green : colors.brand} /><Text className="text-[8.5px] font-medium" style={{ color: downloaded ? colors.green : colors.brand }}>{downloaded ? 'Hazır' : 'PDF indir'}</Text></Pressable>
           </View>
         </View>
 
         <View className="mt-4 overflow-hidden rounded-[20px] border-[0.5px] border-line bg-white">
-          <View className="px-4 pb-2 pt-3.5"><Text className="text-[8px] font-medium uppercase tracking-[0.8px] text-muted">Çalışan özeti</Text></View>
+          <View className="px-4 pb-2 pt-3.5"><Text className="text-[8px] font-medium tracking-[0.8px] text-muted">{trUpper('Çalışan özeti')}</Text></View>
           <View className="flex-row border-t-[0.5px] border-line">
             <View className="flex-1 px-4 py-4"><Text className="text-[8px] text-muted">Yıllık izin bakiyesi</Text><Text className="mt-1.5 text-[16px] font-medium text-ink">{employeePayrollSummary.leaveBalance}</Text></View>
             <View className="w-[0.5px] bg-line" />
@@ -414,7 +415,7 @@ export function PayrollPage({ onClose }: PageProps) {
           <View className="overflow-hidden rounded-[22px] border-[0.5px] border-line bg-white">
             {payrollArchive.map((item, index) => {
               const isReady = downloadedArchive.includes(item.month);
-              const monthCode = item.month.slice(0, 3).toLocaleUpperCase('tr-TR');
+              const monthCode = trUpper(item.month.slice(0, 3));
               return (
                 <View key={item.month} className={`min-h-[76px] flex-row items-center gap-3 px-4 ${index === payrollArchive.length - 1 ? '' : 'border-b-[0.5px] border-line'}`}>
                   <View className="h-10 w-10 items-center justify-center rounded-[11px] bg-[#F3F0EC]"><Text className="text-[8px] font-semibold tracking-[0.5px] text-muted">{monthCode}</Text><Text className="mt-0.5 text-[7px] text-muted">2026</Text></View>
@@ -452,7 +453,7 @@ export function FeedbackPage({ onClose }: PageProps) {
           <View className="overflow-hidden rounded-[24px] border-[0.5px] border-line bg-white">
             <View className="h-1 bg-green" />
             <View className="px-5 py-6">
-              <View className="flex-row items-center gap-2"><View className="h-7 w-7 items-center justify-center rounded-full bg-[#EAF5F1]"><Icon name="check" size={14} color={colors.green} /></View><Text className="text-[8.5px] font-medium uppercase tracking-[0.7px] text-green">Başarıyla iletildi</Text></View>
+              <View className="flex-row items-center gap-2"><View className="h-7 w-7 items-center justify-center rounded-full bg-[#EAF5F1]"><Icon name="check" size={14} color={colors.green} /></View><Text className="text-[8.5px] font-medium tracking-[0.7px] text-green">{trUpper('Başarıyla iletildi')}</Text></View>
               <Text className="mt-6 text-[21px] font-medium tracking-[-0.35px] text-ink">Geri bildiriminiz alındı</Text>
               <Text className="mt-2.5 text-[9.5px] leading-[15px] text-muted">Mesajınız Çalışan Deneyimi ekibine güvenli şekilde iletildi.</Text>
               <View className="my-5 h-[0.5px] bg-line" />

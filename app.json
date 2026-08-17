@@ -6,6 +6,14 @@
     "orientation": "portrait",
     "icon": "./assets/app-icon-burgundy.png",
     "userInterfaceStyle": "light",
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Risk veya olay bildirimine fotoğraf ekleyebilmeniz için galeri erişimi gereklidir."
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.arfitect.bayraktar",
