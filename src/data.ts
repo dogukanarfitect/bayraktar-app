@@ -91,6 +91,89 @@ export const recognitionMembers: RecognitionMember[] = [
   { name: 'Selin Öz', team: 'Kalite', hint: 'Kontrol disiplini', photo: require('../assets/elif-oz.jpg'), points: '1.080' },
 ];
 
+export type FoodMenuItem = {
+  category: string;
+  name: string;
+  calories: string;
+};
+
+export type WeeklyFoodMenu = {
+  day: string;
+  date: string;
+  title: string;
+  total: string;
+  today: boolean;
+  items: FoodMenuItem[];
+};
+
+export const weeklyFoodMenus: WeeklyFoodMenu[] = [
+  {
+    day: 'Pazartesi',
+    date: '2026-08-17',
+    title: 'Etli türlü menüsü',
+    total: '983 kcal',
+    today: true,
+    items: [
+      { category: 'Günün çorbası', name: 'Mercimek çorbası', calories: '118 kcal' },
+      { category: 'Ana yemek', name: 'Etli türlü', calories: '420 kcal' },
+      { category: 'Yardımcı yemek', name: 'Şehriyeli pirinç pilavı', calories: '265 kcal' },
+      { category: 'Salata ve tatlı', name: 'Mevsim salata · Fırın sütlaç', calories: '180 kcal' },
+    ],
+  },
+  {
+    day: 'Salı',
+    date: '2026-08-18',
+    title: 'Izgara köfte menüsü',
+    total: '920 kcal',
+    today: false,
+    items: [
+      { category: 'Günün çorbası', name: 'Ezogelin çorbası', calories: '132 kcal' },
+      { category: 'Ana yemek', name: 'Izgara köfte', calories: '405 kcal' },
+      { category: 'Yardımcı yemek', name: 'Domatesli bulgur pilavı · Cacık', calories: '248 kcal' },
+      { category: 'Salata ve meyve', name: 'Çoban salata · Mevsim meyvesi', calories: '135 kcal' },
+    ],
+  },
+  {
+    day: 'Çarşamba',
+    date: '2026-08-19',
+    title: 'Etli türlü menüsü',
+    total: '952 kcal',
+    today: false,
+    items: [
+      { category: 'Günün çorbası', name: 'Ezogelin çorbası', calories: '132 kcal' },
+      { category: 'Ana yemek', name: 'Etli türlü', calories: '420 kcal' },
+      { category: 'Yardımcı yemek', name: 'Şehriyeli pirinç pilavı', calories: '265 kcal' },
+      { category: 'Salata ve meyve', name: 'Çoban salata · Mevsim meyvesi', calories: '135 kcal' },
+    ],
+  },
+  {
+    day: 'Perşembe',
+    date: '2026-08-20',
+    title: 'Izgara köfte menüsü',
+    total: '951 kcal',
+    today: false,
+    items: [
+      { category: 'Günün çorbası', name: 'Mercimek çorbası', calories: '118 kcal' },
+      { category: 'Ana yemek', name: 'Izgara köfte', calories: '405 kcal' },
+      { category: 'Yardımcı yemek', name: 'Domatesli bulgur pilavı · Cacık', calories: '248 kcal' },
+      { category: 'Salata ve tatlı', name: 'Mevsim salata · Fırın sütlaç', calories: '180 kcal' },
+    ],
+  },
+  {
+    day: 'Cuma',
+    date: '2026-08-21',
+    title: 'Etli türlü menüsü',
+    total: '980 kcal',
+    today: false,
+    items: [
+      { category: 'Günün çorbası', name: 'Ezogelin çorbası', calories: '132 kcal' },
+      { category: 'Ana yemek', name: 'Etli türlü', calories: '420 kcal' },
+      { category: 'Yardımcı yemek', name: 'Domatesli bulgur pilavı · Cacık', calories: '248 kcal' },
+      { category: 'Salata ve tatlı', name: 'Mevsim salata · Fırın sütlaç', calories: '180 kcal' },
+    ],
+  },
+];
+
 export const detailContent = {
   foodMenu: { title: 'Yemek Listesi', subtitle: 'Bugünün menüsü · 17 Ağustos', icon: 'food' as IconName, rows: [
     ['Günün Çorbası', 'Mercimek çorbası', '118 kcal'], ['Ana Yemek', 'Etli türlü', '420 kcal'], ['Yardımcı Yemek', 'Şehriyeli pirinç pilavı', '265 kcal'], ['Salata / Tatlı', 'Mevsim salata · Fırın sütlaç', '180 kcal'],

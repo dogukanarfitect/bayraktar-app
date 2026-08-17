@@ -1,4 +1,4 @@
-import { detailContent } from '../data';
+import { detailContent, weeklyFoodMenus } from '../data';
 import { doctorDays, employeeDocuments, employeePayrollSummary } from '../modals/EmployeeServicesPages';
 import { pinarbasiServiceData } from '../modals/ServiceRoutesPage';
 import { emergencyContacts, safetyDocuments, trainingItems } from '../modals/SafetyServicePages';
@@ -12,10 +12,7 @@ export const BAYRA_PORTAL_DATA = {
     facility: 'Tesis 2',
     shift: 'A vardiyası',
   },
-  foodMenus: [{
-    date: 'Bugün',
-    items: detailContent.foodMenu.rows.map(([category, item, calories]) => ({ category, item, calories })),
-  }],
+  foodMenus: weeklyFoodMenus,
   service: {
     name: pinarbasiServiceData.name,
     address: pinarbasiServiceData.address,

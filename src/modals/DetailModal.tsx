@@ -4,7 +4,7 @@ import { Animated, Easing, Image, KeyboardAvoidingView, Modal, Platform, Pressab
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BayraThinkingIndicator, Icon, NativeLinearGradient } from '../components';
-import { detailContent, newsItems, recognitionMembers, surveyQuestions } from '../data';
+import { detailContent, newsItems, recognitionMembers, surveyQuestions, weeklyFoodMenus } from '../data';
 import { createBayraSessionId, getBayraErrorMessage, requestBayraReply, type BayraMessage } from '../services/bayraApi';
 import { colors } from '../theme';
 import { trLower, trUpper } from '../turkishText';
@@ -69,48 +69,44 @@ const foodImages = {
   cobanSalad: require('../../assets/food-coban-salad.png'),
 } as const;
 
-const weeklyFoodMenus = [
-  {
-    day: 'Pzt', date: '17', fullDate: '17 Ağustos · Pazartesi', today: true, title: 'Etli türlü menüsü', total: '983 kcal', hero: foodImages.etliTurlu, items: [
-      { category: 'Günün çorbası', name: 'Mercimek çorbası', calories: '118 kcal', image: foodImages.lentilSoup },
-      { category: 'Ana yemek', name: 'Etli türlü', calories: '420 kcal', image: foodImages.etliTurlu },
-      { category: 'Yardımcı yemek', name: 'Şehriyeli pirinç pilavı', calories: '265 kcal', image: foodImages.ricePilaf },
-      { category: 'Salata ve tatlı', name: 'Mevsim salata · Fırın sütlaç', calories: '180 kcal', image: foodImages.saladSutlac },
-    ]
-  },
-  {
-    day: 'Sal', date: '18', fullDate: '18 Ağustos · Salı', today: false, title: 'Izgara köfte menüsü', total: '920 kcal', hero: foodImages.grilledKofte, items: [
-      { category: 'Günün çorbası', name: 'Ezogelin çorbası', calories: '132 kcal', image: foodImages.ezogelinSoup },
-      { category: 'Ana yemek', name: 'Izgara köfte', calories: '405 kcal', image: foodImages.grilledKofte },
-      { category: 'Yardımcı yemek', name: 'Domatesli bulgur pilavı · Cacık', calories: '248 kcal', image: foodImages.bulgurCacik },
-      { category: 'Salata ve meyve', name: 'Çoban salata · Mevsim meyvesi', calories: '135 kcal', image: foodImages.cobanSalad },
-    ]
-  },
-  {
-    day: 'Çar', date: '19', fullDate: '19 Ağustos · Çarşamba', today: false, title: 'Etli türlü menüsü', total: '952 kcal', hero: foodImages.etliTurlu, items: [
-      { category: 'Günün çorbası', name: 'Ezogelin çorbası', calories: '132 kcal', image: foodImages.ezogelinSoup },
-      { category: 'Ana yemek', name: 'Etli türlü', calories: '420 kcal', image: foodImages.etliTurlu },
-      { category: 'Yardımcı yemek', name: 'Şehriyeli pirinç pilavı', calories: '265 kcal', image: foodImages.ricePilaf },
-      { category: 'Salata ve meyve', name: 'Çoban salata · Mevsim meyvesi', calories: '135 kcal', image: foodImages.cobanSalad },
-    ]
-  },
-  {
-    day: 'Per', date: '20', fullDate: '20 Ağustos · Perşembe', today: false, title: 'Izgara köfte menüsü', total: '951 kcal', hero: foodImages.grilledKofte, items: [
-      { category: 'Günün çorbası', name: 'Mercimek çorbası', calories: '118 kcal', image: foodImages.lentilSoup },
-      { category: 'Ana yemek', name: 'Izgara köfte', calories: '405 kcal', image: foodImages.grilledKofte },
-      { category: 'Yardımcı yemek', name: 'Domatesli bulgur pilavı · Cacık', calories: '248 kcal', image: foodImages.bulgurCacik },
-      { category: 'Salata ve tatlı', name: 'Mevsim salata · Fırın sütlaç', calories: '180 kcal', image: foodImages.saladSutlac },
-    ]
-  },
-  {
-    day: 'Cum', date: '21', fullDate: '21 Ağustos · Cuma', today: false, title: 'Etli türlü menüsü', total: '980 kcal', hero: foodImages.etliTurlu, items: [
-      { category: 'Günün çorbası', name: 'Ezogelin çorbası', calories: '132 kcal', image: foodImages.ezogelinSoup },
-      { category: 'Ana yemek', name: 'Etli türlü', calories: '420 kcal', image: foodImages.etliTurlu },
-      { category: 'Yardımcı yemek', name: 'Domatesli bulgur pilavı · Cacık', calories: '248 kcal', image: foodImages.bulgurCacik },
-      { category: 'Salata ve tatlı', name: 'Mevsim salata · Fırın sütlaç', calories: '180 kcal', image: foodImages.saladSutlac },
-    ]
-  },
-] as const;
+const foodDayLabels: Record<string, string> = {
+  Pazartesi: 'Pzt',
+  Salı: 'Sal',
+  Çarşamba: 'Çar',
+  Perşembe: 'Per',
+  Cuma: 'Cum',
+};
+
+const foodItemImages: Record<string, (typeof foodImages)[keyof typeof foodImages]> = {
+  'Mercimek çorbası': foodImages.lentilSoup,
+  'Etli türlü': foodImages.etliTurlu,
+  'Şehriyeli pirinç pilavı': foodImages.ricePilaf,
+  'Mevsim salata · Fırın sütlaç': foodImages.saladSutlac,
+  'Ezogelin çorbası': foodImages.ezogelinSoup,
+  'Izgara köfte': foodImages.grilledKofte,
+  'Domatesli bulgur pilavı · Cacık': foodImages.bulgurCacik,
+  'Çoban salata · Mevsim meyvesi': foodImages.cobanSalad,
+};
+
+const foodHeroImages: Record<string, (typeof foodImages)[keyof typeof foodImages]> = {
+  'Etli türlü menüsü': foodImages.etliTurlu,
+  'Izgara köfte menüsü': foodImages.grilledKofte,
+};
+
+const foodMenuPages = weeklyFoodMenus.map((menu) => {
+  const dayNumber = Number(menu.date.split('-')[2]);
+  return {
+    ...menu,
+    dayLabel: foodDayLabels[menu.day] ?? menu.day.slice(0, 3),
+    dateLabel: String(dayNumber),
+    fullDate: `${dayNumber} Ağustos · ${menu.day}`,
+    hero: foodHeroImages[menu.title] ?? foodImages.etliTurlu,
+    items: menu.items.map((item) => ({
+      ...item,
+      image: foodItemImages[item.name] ?? foodImages.etliTurlu,
+    })),
+  };
+});
 
 type LegacyServiceRoute = { id: string; name: string; direction: string; departure: string; duration: string; occupancy: number; plate: string; stops: string[]; coordinates: { latitude: number; longitude: number }[] };
 const serviceRouteItems: LegacyServiceRoute[] = [];
@@ -451,7 +447,7 @@ function AiChatPage({ onClose, onNavigate, conversation, setConversation, sessio
 function FoodMenuPage({ onClose }: { onClose: () => void }) {
   const insets = useSafeAreaInsets();
   const [selectedDay, setSelectedDay] = useState(0);
-  const selectedMenu = weeklyFoodMenus[selectedDay];
+  const selectedMenu = foodMenuPages[selectedDay];
   const menuTransition = useRef(new Animated.Value(1)).current;
   const menuTransitionDirection = useRef(1);
 
@@ -497,20 +493,20 @@ function FoodMenuPage({ onClose }: { onClose: () => void }) {
           </View>
           <View className="h-[0.5px] bg-line" />
           <View className="flex-row px-2 pb-3 pt-2">
-            {weeklyFoodMenus.map((menu, index) => {
+            {foodMenuPages.map((menu, index) => {
               const selected = selectedDay === index;
               return (
                 <Pressable
-                  key={menu.day}
+                  key={menu.date}
                   accessibilityRole="tab"
                   accessibilityState={{ selected }}
                   accessibilityLabel={`${menu.fullDate} menüsü`}
                   onPress={() => selectMenuDay(index)}
                   className="min-h-[68px] flex-1 items-center justify-start rounded-[14px] pt-2 active:bg-[#F7F5F1]"
                 >
-                  <Text className={`text-[8px] font-medium ${selected ? 'text-brand' : 'text-muted'}`}>{menu.day}</Text>
+                  <Text className={`text-[8px] font-medium ${selected ? 'text-brand' : 'text-muted'}`}>{menu.dayLabel}</Text>
                   <View className={`mt-1.5 h-9 w-9 items-center justify-center rounded-full ${selected ? 'bg-brand' : ''}`}>
-                    <Text className={`text-[14px] font-semibold ${selected ? 'text-white' : 'text-ink'}`}>{menu.date}</Text>
+                    <Text className={`text-[14px] font-semibold ${selected ? 'text-white' : 'text-ink'}`}>{menu.dateLabel}</Text>
                   </View>
                   {menu.today ? <Text className={`mt-1 text-[7px] font-medium ${selected ? 'text-brand' : 'text-muted'}`}>Bugün</Text> : <View className="mt-1 h-[9px]" />}
                 </Pressable>
@@ -538,7 +534,7 @@ function FoodMenuPage({ onClose }: { onClose: () => void }) {
               className="absolute inset-0"
             />
             <View className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-[7px]">
-              <Text className="text-[8px] font-semibold tracking-[1px] text-brand">{trUpper(selectedMenu.today ? 'Bugün' : selectedMenu.day)}</Text>
+              <Text className="text-[8px] font-semibold tracking-[1px] text-brand">{trUpper(selectedMenu.today ? 'Bugün' : selectedMenu.dayLabel)}</Text>
             </View>
             <View className="absolute bottom-5 left-5 right-5">
               <Text className="text-[25px] font-medium tracking-[-0.5px] text-white">{selectedMenu.title}</Text>
