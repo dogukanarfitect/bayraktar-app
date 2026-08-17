@@ -32,6 +32,9 @@ type DetailContentProps = DetailModalProps & {
   aiConversation: BayraMessage[];
   setAiConversation: Dispatch<SetStateAction<BayraMessage[]>>;
   aiSessionId: string;
+  hrConversation: ChatMessage[];
+  setHrConversation: Dispatch<SetStateAction<ChatMessage[]>>;
+  hrSessionId: string;
   notificationUnreadIds: string[];
   setNotificationUnreadIds: Dispatch<SetStateAction<string[]>>;
 };
@@ -118,12 +121,16 @@ export function DetailModal(props: DetailModalProps) {
     { role: 'assistant', text: AI_WELCOME_MESSAGE },
   ]);
   const aiSessionId = useRef(createBayraSessionId()).current;
+  const [hrConversation, setHrConversation] = useState<ChatMessage[]>([
+    { user: false, text: HR_WELCOME_MESSAGE, time: 'Şimdi' },
+  ]);
+  const hrSessionId = useRef(createHrSessionId()).current;
   const [notificationUnreadIds, setNotificationUnreadIds] = useState(() => notificationItems.filter((item) => item.unread).map((item) => item.id));
 
   return (
     <Modal visible={!!props.modal} animationType="slide" presentationStyle={fullScreen ? 'fullScreen' : 'pageSheet'} onRequestClose={props.onClose}>
       <ModalScene key={props.modal ?? 'none'}>
-        <DetailContent {...props} aiConversation={aiConversation} setAiConversation={setAiConversation} aiSessionId={aiSessionId} notificationUnreadIds={notificationUnreadIds} setNotificationUnreadIds={setNotificationUnreadIds} />
+        <DetailContent {...props} aiConversation={aiConversation} setAiConversation={setAiConversation} aiSessionId={aiSessionId} hrConversation={hrConversation} setHrConversation={setHrConversation} hrSessionId={hrSessionId} notificationUnreadIds={notificationUnreadIds} setNotificationUnreadIds={setNotificationUnreadIds} />
       </ModalScene>
     </Modal>
   );
@@ -154,14 +161,10 @@ function ModalScene({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DetailContent({ modal, selectedNews, onClose, onNavigate, onSent, aiConversation, setAiConversation, aiSessionId, notificationUnreadIds, setNotificationUnreadIds }: DetailContentProps) {
+function DetailContent({ modal, selectedNews, onClose, onNavigate, onSent, aiConversation, setAiConversation, aiSessionId, hrConversation, setHrConversation, hrSessionId, notificationUnreadIds, setNotificationUnreadIds }: DetailContentProps) {
   const insets = useSafeAreaInsets();
   const detailScrollRef = useRef<ScrollView>(null);
-  const hrSessionId = useRef(createHrSessionId()).current;
   const [draft, setDraft] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { user: false, text: HR_WELCOME_MESSAGE, time: 'Şimdi' },
-  ]);
   const [selectedPerson, setSelectedPerson] = useState<number | null>(null);
   const [note, setNote] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -190,17 +193,17 @@ function DetailContent({ modal, selectedNews, onClose, onNavigate, onSent, aiCon
     const question = value.trim();
     if (!question || hrReplyPhase !== 'idle') return;
     const time = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-    setMessages((current) => [...current, { user: true, text: question, time }]);
+    setHrConversation((current) => [...current, { user: true, text: question, time }]);
     setDraft('');
     setHrReplyPhase('thinking');
 
     try {
       const response = await requestHrReply(question, hrSessionId);
       const replyTime = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-      setMessages((current) => [...current, { user: false, text: response.text, time: replyTime }]);
+      setHrConversation((current) => [...current, { user: false, text: response.text, time: replyTime }]);
     } catch (error) {
       const replyTime = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-      setMessages((current) => [...current, { user: false, text: getHrErrorMessage(error), time: replyTime }]);
+      setHrConversation((current) => [...current, { user: false, text: getHrErrorMessage(error), time: replyTime }]);
     } finally {
       setHrReplyPhase('idle');
     }
@@ -216,9 +219,9 @@ function DetailContent({ modal, selectedNews, onClose, onNavigate, onSent, aiCon
     subtitle = `${HR_ASSISTANT_NAME} · Çalışan Deneyimi`;
     body = (
       <View>
-        <Chat messages={messages} assistantName={HR_ASSISTANT_NAME} assistantInitials="DY" />
+        <Chat messages={hrConversation} assistantName={HR_ASSISTANT_NAME} assistantInitials="DY" />
         {hrReplyPhase === 'thinking' ? <HrThinkingIndicator /> : null}
-        {messages.length === 1 && hrReplyPhase === 'idle' ? (
+        {hrConversation.length === 1 && hrReplyPhase === 'idle' ? (
           <View className="mt-6">
             <Text className="mb-3 text-[10px] text-muted">Size nasıl yardımcı olabilirim?</Text>
             <View className="overflow-hidden rounded-[18px] border-[0.5px] border-line bg-white">
