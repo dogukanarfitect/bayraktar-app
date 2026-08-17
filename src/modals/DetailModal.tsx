@@ -5,12 +5,13 @@ import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, NativeLinearGradient } from '../components';
 import { detailContent, newsItems, recognitionMembers, surveyQuestions } from '../data';
+import { getBayraErrorMessage, requestBayraReply, type BayraMessage } from '../services/bayraApi';
 import { colors } from '../theme';
 import { trLower, trUpper } from '../turkishText';
 import type { IconName, ModalId, NewsItem } from '../types';
-import { doctorDays, employeeDocuments, employeePayrollSummary, DoctorSchedulePage, DocumentsPage, EmployeeCalendarPage, EmployeeInfoPage, FeedbackPage, PayrollPage } from './EmployeeServicesPages';
-import { emergencyContacts, trainingItems, EmergencyPhonesPage, RiskReportPage, SafetyDocumentsPage, SafetyTrainingPage } from './SafetyServicePages';
-import { pinarbasiServiceData, ServiceRoutesPage as CompanyServiceRoutesPage } from './ServiceRoutesPage';
+import { DoctorSchedulePage, DocumentsPage, EmployeeCalendarPage, EmployeeInfoPage, FeedbackPage, PayrollPage } from './EmployeeServicesPages';
+import { EmergencyPhonesPage, RiskReportPage, SafetyDocumentsPage, SafetyTrainingPage } from './SafetyServicePages';
+import { ServiceRoutesPage as CompanyServiceRoutesPage } from './ServiceRoutesPage';
 
 type DetailModalProps = {
   modal: ModalId | null;
@@ -26,20 +27,9 @@ type ChatMessage = {
   time: string;
 };
 
-type AiMessage = {
-  role: 'user' | 'assistant';
-  text: string;
-  action?: { label: string; target: ModalId };
-};
-
-type BayraResponse = {
-  text: string;
-  action?: { label: string; target: ModalId };
-};
-
 type DetailContentProps = DetailModalProps & {
-  aiConversation: AiMessage[];
-  setAiConversation: Dispatch<SetStateAction<AiMessage[]>>;
+  aiConversation: BayraMessage[];
+  setAiConversation: Dispatch<SetStateAction<BayraMessage[]>>;
   notificationUnreadIds: string[];
   setNotificationUnreadIds: Dispatch<SetStateAction<string[]>>;
 };
@@ -47,7 +37,7 @@ type DetailContentProps = DetailModalProps & {
 type ReplyPhase = 'idle' | 'thinking' | 'streaming';
 
 const AI_ASSISTANT_NAME = 'BAYRA';
-const AI_WELCOME_MESSAGE = 'Merhaba Mehmet, ben BAYRA – Bayraktar Akıllı Hizmet Asistanı. İzin bakiyeniz, servis saatleri, günlük yemek menüsü, bordro, dokümanlar ve İSG konularında size hızlıca yardımcı olabilirim. Nasıl yardımcı olabilirim?';
+const AI_WELCOME_MESSAGE = 'Merhaba Mehmet, ben BAYRA – Bayraktar Akıllı Hizmet Asistanı. İzin, servis, yemek, bordro, doküman ve İSG süreçlerinde size yardımcı olabilirim. Nasıl yardımcı olabilirim?';
 const HR_ASSISTANT_NAME = 'Derya Yıldız';
 const HR_WELCOME_MESSAGE = 'Merhaba Mehmet, ben Derya. İK Çalışan Deneyimi ekibindeyim. İzin, bordro, özlük bilgileri ve diğer İK süreçlerinizle ilgili taleplerinizde size yardımcı olabilirim.';
 const HR_SUGGESTIONS = ['İzin bakiyemi öğrenmek istiyorum', 'Bordroma nasıl ulaşabilirim?', 'Özlük bilgilerimi güncellemek istiyorum'];
@@ -115,7 +105,7 @@ const serviceRouteItems: LegacyServiceRoute[] = [];
 
 export function DetailModal(props: DetailModalProps) {
   const fullScreen = props.modal === 'newsDetail' || props.modal === 'notifications' || props.modal === 'aiChat' || props.modal === 'hrChat' || props.modal === 'send' || props.modal === 'foodMenu' || props.modal === 'serviceRoutes' || props.modal === 'survey' || props.modal === 'employeeInfo' || props.modal === 'calendar' || props.modal === 'doctorSchedule' || props.modal === 'documents' || props.modal === 'payroll' || props.modal === 'feedbackForm' || props.modal === 'safetyTraining' || props.modal === 'safetyDocs' || props.modal === 'emergencyPhones' || props.modal === 'riskReport';
-  const [aiConversation, setAiConversation] = useState<AiMessage[]>([
+  const [aiConversation, setAiConversation] = useState<BayraMessage[]>([
     { role: 'assistant', text: AI_WELCOME_MESSAGE },
   ]);
   const [notificationUnreadIds, setNotificationUnreadIds] = useState(() => notificationItems.filter((item) => item.unread).map((item) => item.id));
@@ -304,10 +294,9 @@ function DetailContent({ modal, selectedNews, onClose, onNavigate, onSent, aiCon
   );
 }
 
-function AiChatPage({ onClose, onNavigate, conversation, setConversation }: { onClose: () => void; onNavigate: (id: ModalId) => void; conversation: AiMessage[]; setConversation: Dispatch<SetStateAction<AiMessage[]>> }) {
+function AiChatPage({ onClose, onNavigate, conversation, setConversation }: { onClose: () => void; onNavigate: (id: ModalId) => void; conversation: BayraMessage[]; setConversation: Dispatch<SetStateAction<BayraMessage[]>> }) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
-  const replyDelayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const streamTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [draft, setDraft] = useState('');
   const [replyPhase, setReplyPhase] = useState<ReplyPhase>('idle');
@@ -316,19 +305,19 @@ function AiChatPage({ onClose, onNavigate, conversation, setConversation }: { on
   const replying = replyPhase !== 'idle';
 
   useEffect(() => () => {
-    if (replyDelayTimer.current) clearTimeout(replyDelayTimer.current);
     if (streamTimer.current) clearInterval(streamTimer.current);
   }, []);
 
-  const sendMessage = (value = draft) => {
+  const sendMessage = async (value = draft) => {
     const question = value.trim();
     if (!question || replying) return;
+    const nextConversation: BayraMessage[] = [...conversation, { role: 'user', text: question }];
     setDraft('');
     setReplyPhase('thinking');
-    setConversation((current) => [...current, { role: 'user', text: question }]);
-    const response = getBayraResponse(question);
+    setConversation(nextConversation);
 
-    replyDelayTimer.current = setTimeout(() => {
+    try {
+      const response = await requestBayraReply(nextConversation);
       let cursor = 0;
       setConversation((current) => [...current, { role: 'assistant', text: '' }]);
       setReplyPhase('streaming');
@@ -345,7 +334,10 @@ function AiChatPage({ onClose, onNavigate, conversation, setConversation }: { on
           setReplyPhase('idle');
         }
       }, 24);
-    }, 320);
+    } catch (error) {
+      setConversation((current) => [...current, { role: 'assistant', text: getBayraErrorMessage(error) }]);
+      setReplyPhase('idle');
+    }
   };
 
   return (
@@ -944,53 +936,6 @@ function NewsDetailPage({ item, onClose }: { item: NewsItem; onClose: () => void
       </ScrollView>
     </View>
   );
-}
-
-function getBayraResponse(message: string): BayraResponse {
-  const normalized = trLower(message);
-  const todayMenu = weeklyFoodMenus.find((menu) => menu.today) ?? weeklyFoodMenus[0];
-  const activeDoctor = doctorDays.find((day) => day.active) ?? doctorDays[0];
-  const activeTraining = trainingItems.find((training) => training.progress > 0 && training.progress < 100) ?? trainingItems.find((training) => training.progress < 100);
-  const clinicContact = emergencyContacts.find((contact) => contact.id === 'clinic');
-
-  if (normalized.includes('servis')) {
-    const stopNames = pinarbasiServiceData.stops.map((stop) => stop.name).join(', ');
-    return { text: `${pinarbasiServiceData.name} servisi ${pinarbasiServiceData.departure}’de hareket ediyor. Araç plakası ${pinarbasiServiceData.plate}; tahmini süre ${pinarbasiServiceData.duration}. Duraklar: ${stopNames}.`, action: { label: 'Servis hattını aç', target: 'serviceRoutes' } };
-  }
-
-  if (normalized.includes('yemek') || normalized.includes('menü')) {
-    const menuItems = todayMenu.items.map((item) => item.name).join(', ');
-    return { text: `${todayMenu.fullDate} menüsü: ${menuItems}. Toplam ${todayMenu.total}.`, action: { label: 'Yemek listesini aç', target: 'foodMenu' } };
-  }
-
-  if (normalized.includes('izin')) {
-    return { text: `Kullanılabilir yıllık izin bakiyeniz ${employeePayrollSummary.leaveBalance}. Bu bilgi Bordro sayfasındaki güncel özlük özetinden alınmıştır.`, action: { label: 'Bordro ve izinleri aç', target: 'payroll' } };
-  }
-
-  if (normalized.includes('bordro') || normalized.includes('maaş')) {
-    return { text: `${employeePayrollSummary.month} bordronuz hazır. Yayın tarihi ${employeePayrollSummary.readyDate}; güncel bordroyu Profil > Bordro alanından görüntüleyebilir veya indirebilirsiniz.`, action: { label: 'Bordroyu aç', target: 'payroll' } };
-  }
-
-  if (normalized.includes('doküman') || normalized.includes('belge')) {
-    const documentNames = employeeDocuments.map((document) => document.title).join(', ');
-    return { text: `Dokümanlar sayfasında ${employeeDocuments.length} güncel dosya bulunuyor: ${documentNames}.`, action: { label: 'Dokümanları aç', target: 'documents' } };
-  }
-
-  if (normalized.includes('doktor') || normalized.includes('revir') || normalized.includes('randevu')) {
-    return { text: `${activeDoctor.date} günü ${activeDoctor.doctor} ${activeDoctor.time} saatleri arasında revirde. Uygun randevu saatleri: ${activeDoctor.slots.join(', ')}${clinicContact ? `. Revir dahili numarası ${clinicContact.number}` : ''}.`, action: { label: 'Doktor takvimini aç', target: 'doctorSchedule' } };
-  }
-
-  if (normalized.includes('sos') || normalized.includes('acil') || normalized.includes('telefon')) {
-    const contacts = emergencyContacts.map((contact) => `${contact.title}: ${contact.number}`).join(', ');
-    return { text: `Acil iletişim bilgileri: ${contacts}. Hayati tehlike varsa uygulamadaki SOS alanını kullanın.`, action: { label: 'Acil telefonları aç', target: 'emergencyPhones' } };
-  }
-
-  if (normalized.includes('isg') || normalized.includes('güvenlik') || normalized.includes('eğitim')) {
-    if (!activeTraining) return { text: 'İSG Eğitimleri sayfasında bekleyen bir eğitim görünmüyor.', action: { label: 'İSG eğitimlerini aç', target: 'safetyTraining' } };
-    return { text: `İSG Eğitimleri sayfasındaki sıradaki içeriğiniz ${activeTraining.title}. ${activeTraining.type}, ${activeTraining.duration}; mevcut ilerleme %${activeTraining.progress} ve son tarih ${activeTraining.due}.`, action: { label: 'İSG eğitimlerini aç', target: 'safetyTraining' } };
-  }
-
-  return { text: 'Ben BAYRA. Servis, yemek, izin, bordro, doküman, doktor takvimi ve İSG ekranlarındaki güncel bilgilerle yardımcı olabilirim. Hangi bilgiyi görmek istediğinizi yazabilirsiniz.' };
 }
 
 function getHrChatResponse(message: string) {

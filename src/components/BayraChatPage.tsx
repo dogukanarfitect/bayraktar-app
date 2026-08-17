@@ -1,54 +1,42 @@
 import { useEffect, useRef, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { detailContent } from '../data';
+import { getBayraErrorMessage, requestBayraReply, type BayraMessage } from '../services/bayraApi';
 import { colors } from '../theme';
-import { trLower, trUpper } from '../turkishText';
+import { trUpper } from '../turkishText';
 import type { ModalId } from '../types';
 import { Icon } from './Icon';
-
-type AiMessage = {
-  role: 'user' | 'assistant';
-  text: string;
-  action?: { label: string; target: ModalId };
-};
-
-type BayraResponse = {
-  text: string;
-  action?: { label: string; target: ModalId };
-};
 
 type ReplyPhase = 'idle' | 'thinking' | 'streaming';
 
 const AI_ASSISTANT_NAME = 'BAYRA';
-const AI_WELCOME_MESSAGE = 'Merhaba Mehmet, ben BAYRA – Bayraktar Akıllı Hizmet Asistanı. İzin bakiyeniz, servis saatleri, günlük yemek menüsü, bordro, dokümanlar ve İSG konularında size hızlıca yardımcı olabilirim. Nasıl yardımcı olabilirim?';
+const AI_WELCOME_MESSAGE = 'Merhaba Mehmet, ben BAYRA – Bayraktar Akıllı Hizmet Asistanı. İzin, servis, yemek, bordro, doküman ve İSG süreçlerinde size yardımcı olabilirim. Nasıl yardımcı olabilirim?';
 const suggestions = ['Bugünkü yemek menüsü nedir?', 'Servisim saat kaçta?', 'Kaç gün iznim kaldı?'];
 
 export function BayraChatPage({ onClose, onNavigate }: { onClose: () => void; onNavigate: (id: ModalId) => void }) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
-  const replyDelayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const streamTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [draft, setDraft] = useState('');
   const [replyPhase, setReplyPhase] = useState<ReplyPhase>('idle');
-  const [conversation, setConversation] = useState<AiMessage[]>([{ role: 'assistant', text: AI_WELCOME_MESSAGE }]);
+  const [conversation, setConversation] = useState<BayraMessage[]>([{ role: 'assistant', text: AI_WELCOME_MESSAGE }]);
   const showSuggestions = !conversation.some((message) => message.role === 'user');
   const replying = replyPhase !== 'idle';
 
   useEffect(() => () => {
-    if (replyDelayTimer.current) clearTimeout(replyDelayTimer.current);
     if (streamTimer.current) clearInterval(streamTimer.current);
   }, []);
 
-  const sendMessage = (value = draft) => {
+  const sendMessage = async (value = draft) => {
     const question = value.trim();
     if (!question || replying) return;
+    const nextConversation: BayraMessage[] = [...conversation, { role: 'user', text: question }];
     setDraft('');
     setReplyPhase('thinking');
-    setConversation((current) => [...current, { role: 'user', text: question }]);
-    const response = getBayraResponse(question);
+    setConversation(nextConversation);
 
-    replyDelayTimer.current = setTimeout(() => {
+    try {
+      const response = await requestBayraReply(nextConversation);
       let cursor = 0;
       setConversation((current) => [...current, { role: 'assistant', text: '' }]);
       setReplyPhase('streaming');
@@ -65,7 +53,10 @@ export function BayraChatPage({ onClose, onNavigate }: { onClose: () => void; on
           setReplyPhase('idle');
         }
       }, 24);
-    }, 320);
+    } catch (error) {
+      setConversation((current) => [...current, { role: 'assistant', text: getBayraErrorMessage(error) }]);
+      setReplyPhase('idle');
+    }
   };
 
   return (
@@ -149,43 +140,4 @@ export function BayraChatPage({ onClose, onNavigate }: { onClose: () => void; on
       </View>
     </KeyboardAvoidingView>
   );
-}
-
-function getBayraResponse(message: string): BayraResponse {
-  const normalized = trLower(message);
-
-  if (normalized.includes('servis')) {
-    return { text: 'Pınarbaşı Hattı servisi 17:40’ta hareket ediyor. Tahmini yolculuk süresi 32 dakika. Güncel durak ve güzergâh bilgilerini Servisler sayfasından görüntüleyebilirsiniz.', action: { label: 'Servis hattını aç', target: 'serviceRoutes' } };
-  }
-
-  if (normalized.includes('yemek') || normalized.includes('menü')) {
-    const menuItems = detailContent.foodMenu.rows.map((row) => row[1]).join(', ');
-    return { text: `Bugünün menüsü: ${menuItems}. Ayrıntılı haftalık listeyi Yemek Listesi sayfasından görebilirsiniz.`, action: { label: 'Yemek listesini aç', target: 'foodMenu' } };
-  }
-
-  if (normalized.includes('izin')) {
-    return { text: 'Güncel izin bakiyeniz güvenlik nedeniyle burada maskeli gösteriliyor. Bordro ve özlük özetinizden kontrol edebilirsiniz.', action: { label: 'Bordro ve izinleri aç', target: 'payroll' } };
-  }
-
-  if (normalized.includes('bordro') || normalized.includes('maaş')) {
-    return { text: 'Güncel bordronuz hazır. Bordro sayfasından görüntüleyebilir veya PDF olarak indirebilirsiniz.', action: { label: 'Bordroyu aç', target: 'payroll' } };
-  }
-
-  if (normalized.includes('doküman') || normalized.includes('belge')) {
-    return { text: 'Güncel çalışan belgeleri ve şirket dokümanları Dokümanlar sayfasında kategori bazında listeleniyor.', action: { label: 'Dokümanları aç', target: 'documents' } };
-  }
-
-  if (normalized.includes('doktor') || normalized.includes('revir') || normalized.includes('randevu')) {
-    return { text: 'Revir ve doktor uygunluk saatlerini görüntüleyebilir, uygun tarih ve saat seçerek randevu talebi oluşturabilirsiniz.', action: { label: 'Doktor takvimini aç', target: 'doctorSchedule' } };
-  }
-
-  if (normalized.includes('sos') || normalized.includes('acil') || normalized.includes('telefon')) {
-    return { text: 'Hayati tehlike varsa uygulamadaki SOS alanını kullanın. Tesis güvenliği ve revir numaraları Acil Telefonlar sayfasında yer alıyor.', action: { label: 'Acil telefonları aç', target: 'emergencyPhones' } };
-  }
-
-  if (normalized.includes('isg') || normalized.includes('güvenlik') || normalized.includes('eğitim')) {
-    return { text: 'Atanmış İSG eğitimlerinizi ve tamamlanma durumlarını İSG Eğitimleri sayfasından takip edebilirsiniz.', action: { label: 'İSG eğitimlerini aç', target: 'safetyTraining' } };
-  }
-
-  return { text: 'Ben BAYRA. Servis, yemek, izin, bordro, doküman, doktor takvimi ve İSG ekranlarındaki bilgilerle yardımcı olabilirim. Hangi bilgiyi görmek istediğinizi yazabilirsiniz.' };
 }
