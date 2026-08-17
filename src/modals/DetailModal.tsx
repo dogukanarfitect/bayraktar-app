@@ -6,8 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BayraThinkingIndicator, Icon, NativeLinearGradient } from '../components';
 import { detailContent, newsItems, recognitionMembers, surveyQuestions, weeklyFoodMenus } from '../data';
 import { createBayraSessionId, getBayraErrorMessage, requestBayraReply, type BayraMessage } from '../services/bayraApi';
+import { createHrSessionId, getHrErrorMessage, requestHrReply } from '../services/hrApi';
 import { colors } from '../theme';
-import { trLower, trUpper } from '../turkishText';
+import { trUpper } from '../turkishText';
 import type { IconName, ModalId, NewsItem } from '../types';
 import { DoctorSchedulePage, DocumentsPage, EmployeeCalendarPage, EmployeeInfoPage, FeedbackPage, PayrollPage } from './EmployeeServicesPages';
 import { EmergencyPhonesPage, RiskReportPage, SafetyDocumentsPage, SafetyTrainingPage } from './SafetyServicePages';
@@ -156,7 +157,7 @@ function ModalScene({ children }: { children: React.ReactNode }) {
 function DetailContent({ modal, selectedNews, onClose, onNavigate, onSent, aiConversation, setAiConversation, aiSessionId, notificationUnreadIds, setNotificationUnreadIds }: DetailContentProps) {
   const insets = useSafeAreaInsets();
   const detailScrollRef = useRef<ScrollView>(null);
-  const hrReplyDelayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hrSessionId = useRef(createHrSessionId()).current;
   const [draft, setDraft] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([
     { user: false, text: HR_WELCOME_MESSAGE, time: 'Şimdi' },
@@ -166,10 +167,6 @@ function DetailContent({ modal, selectedNews, onClose, onNavigate, onSent, aiCon
   const [submitted, setSubmitted] = useState(false);
   const [hrReplyPhase, setHrReplyPhase] = useState<ReplyPhase>('idle');
   const recognitionPeers = useMemo(() => recognitionMembers.filter((member) => member.name !== 'Mehmet Yılmaz'), []);
-
-  useEffect(() => () => {
-    if (hrReplyDelayTimer.current) clearTimeout(hrReplyDelayTimer.current);
-  }, []);
 
   if (!modal) return null;
   if (modal === 'aiChat') return <AiChatPage onClose={onClose} onNavigate={onNavigate} conversation={aiConversation} setConversation={setAiConversation} sessionId={aiSessionId} />;
@@ -189,20 +186,24 @@ function DetailContent({ modal, selectedNews, onClose, onNavigate, onSent, aiCon
   if (modal === 'newsDetail') return <NewsDetailPage item={selectedNews ?? newsItems[0]} onClose={onClose} />;
   if (modal === 'notifications') return <NotificationsPage onClose={onClose} onNavigate={onNavigate} unreadIds={notificationUnreadIds} setUnreadIds={setNotificationUnreadIds} />;
 
-  const sendChat = (value = draft) => {
+  const sendChat = async (value = draft) => {
     const question = value.trim();
     if (!question || hrReplyPhase !== 'idle') return;
     const time = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-    const response = getHrChatResponse(question);
     setMessages((current) => [...current, { user: true, text: question, time }]);
     setDraft('');
     setHrReplyPhase('thinking');
 
-    hrReplyDelayTimer.current = setTimeout(() => {
-      setMessages((current) => [...current, { user: false, text: response, time }]);
+    try {
+      const response = await requestHrReply(question, hrSessionId);
+      const replyTime = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      setMessages((current) => [...current, { user: false, text: response.text, time: replyTime }]);
+    } catch (error) {
+      const replyTime = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+      setMessages((current) => [...current, { user: false, text: getHrErrorMessage(error), time: replyTime }]);
+    } finally {
       setHrReplyPhase('idle');
-      hrReplyDelayTimer.current = null;
-    }, 650);
+    }
   };
 
   let title = 'Detay';
@@ -216,23 +217,7 @@ function DetailContent({ modal, selectedNews, onClose, onNavigate, onSent, aiCon
     body = (
       <View>
         <Chat messages={messages} assistantName={HR_ASSISTANT_NAME} assistantInitials="DY" />
-        {hrReplyPhase === 'thinking' ? (
-          <View className="mt-4 flex-row items-start gap-[10px]">
-            <View className="h-[32px] w-[32px] items-center justify-center rounded-full bg-[#F3E3E8]">
-              <Text className="text-[9px] font-semibold text-brand">DY</Text>
-            </View>
-            <View>
-              <View className="mb-1.5 flex-row items-center gap-2">
-                <Text className="text-[9px] font-medium text-ink">{HR_ASSISTANT_NAME}</Text>
-              </View>
-              <View className="h-[39px] flex-row items-center gap-1 rounded-[20px] rounded-tl-[6px] bg-[#F3F0EC] px-4">
-                <View className="h-[5px] w-[5px] rounded-full bg-muted/50" />
-                <View className="h-[5px] w-[5px] rounded-full bg-muted/70" />
-                <View className="h-[5px] w-[5px] rounded-full bg-muted" />
-              </View>
-            </View>
-          </View>
-        ) : null}
+        {hrReplyPhase === 'thinking' ? <HrThinkingIndicator /> : null}
         {messages.length === 1 && hrReplyPhase === 'idle' ? (
           <View className="mt-6">
             <Text className="mb-3 text-[10px] text-muted">Size nasıl yardımcı olabilirim?</Text>
@@ -942,15 +927,6 @@ function NewsDetailPage({ item, onClose }: { item: NewsItem; onClose: () => void
   );
 }
 
-function getHrChatResponse(message: string) {
-  const normalized = trLower(message);
-  if (normalized.includes('izin')) return '2026 yılı için 9 gün kullanılabilir yıllık izniniz bulunuyor. İsterseniz izin talebi oluşturmanız için izlemeniz gereken adımları da paylaşabilirim.';
-  if (normalized.includes('bordro') || normalized.includes('maaş')) return 'Güncel ve geçmiş bordrolarınıza Profil > Bordro ve Özlük alanından ulaşabilirsiniz. Belgeyle ilgili bir sorun yaşarsanız buradan kayıt oluşturabilirim.';
-  if (normalized.includes('özlük') || normalized.includes('bilgi') || normalized.includes('güncelle')) return 'Özlük bilgilerinizin güncellenmesi için talebinizi aldım. Değiştirmek istediğiniz bilgiyi yazarsanız gerekli belge ve adımları paylaşabilirim.';
-  if (normalized.includes('yan hak') || normalized.includes('sigorta')) return 'Yan haklar ve özel sağlık sigortasıyla ilgili detayları çalışan profilinizde görüntüleyebilirsiniz. Dilerseniz ilgili İK ekibine talep oluşturabilirim.';
-  return 'Mesajınızı aldım. Talebinizi doğru İK sürecine yönlendirebilmem için konuyu biraz daha ayrıntılı paylaşabilir misiniz?';
-}
-
 function Chat({ messages, assistantName = 'Derya Yıldız', assistantInitials = 'DY' }: { messages: ChatMessage[]; assistantName?: string; assistantInitials?: string }) {
   return (
     <View className="gap-5">
@@ -977,6 +953,52 @@ function Chat({ messages, assistantName = 'Derya Yıldız', assistantInitials = 
           </View>
         </View>
       ))}
+    </View>
+  );
+}
+
+function HrThinkingIndicator() {
+  const dots = useRef([0, 1, 2].map(() => new Animated.Value(0.3))).current;
+
+  useEffect(() => {
+    const loops = dots.map((dot, index) => Animated.loop(Animated.sequence([
+      Animated.delay(index * 140),
+      Animated.timing(dot, {
+        toValue: 1,
+        duration: 260,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(dot, {
+        toValue: 0.3,
+        duration: 260,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.delay((2 - index) * 140),
+    ])));
+
+    loops.forEach((loop) => loop.start());
+    return () => loops.forEach((loop) => loop.stop());
+  }, [dots]);
+
+  return (
+    <View className="mt-4 flex-row items-start gap-[10px]">
+      <View className="h-[32px] w-[32px] items-center justify-center rounded-full bg-[#F3E3E8]">
+        <Text className="text-[9px] font-semibold text-brand">DY</Text>
+      </View>
+      <View>
+        <Text className="mb-1.5 text-[9px] font-medium text-ink">{HR_ASSISTANT_NAME} yazıyor</Text>
+        <View className="h-[18px] flex-row items-center gap-[5px] pl-0.5">
+          {dots.map((dot, index) => (
+            <Animated.View
+              key={index}
+              className="h-[6px] w-[6px] rounded-full bg-brand"
+              style={{ opacity: dot, transform: [{ scale: dot }] }}
+            />
+          ))}
+        </View>
+      </View>
     </View>
   );
 }

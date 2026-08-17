@@ -32,9 +32,6 @@ export function SafetyScreen({ header, active, onToggle, onOpen }: SafetyScreenP
   const radarTwoScale = radarTwo.interpolate({ inputRange: [0, 1], outputRange: [0.78, 1.4] });
   const radarOneOpacity = radarOne.interpolate({ inputRange: [0, 0.18, 1], outputRange: [0, 0.48, 0] });
   const radarTwoOpacity = radarTwo.interpolate({ inputRange: [0, 0.18, 1], outputRange: [0, 0.48, 0] });
-  const statusRows = active
-    ? [['Konum', 'Canlı paylaşım açık'], ['Bildirim', 'İSG ekibine iletildi'], ['İletişim', 'Güvenlik kanalı aktif']]
-    : [['Konum', 'Paylaşım beklemede'], ['Bildirim', 'İSG ve güvenlik hazır'], ['İletişim', 'Acil arama erişilebilir']];
 
   useEffect(() => {
     if (!active) {
@@ -110,7 +107,7 @@ export function SafetyScreen({ header, active, onToggle, onOpen }: SafetyScreenP
           <Text className="mt-2 text-[11px] leading-[16px] text-muted">Acil durumda ekiplere hızlıca haber verin.</Text>
         </View>
 
-        <View className="items-center pb-7 pt-8">
+        <View className="items-center pb-5 pt-8">
           <View className={`h-[242px] w-[242px] items-center justify-center rounded-full border ${active ? 'border-[#A8D4C8] bg-[#E5F3EF]' : 'border-[#F0B8B3] bg-[#FCECEB]'}`}>
             {active ? (
               <>
@@ -181,20 +178,7 @@ export function SafetyScreen({ header, active, onToggle, onOpen }: SafetyScreenP
           <Text className="mt-2 max-w-[286px] text-center text-[10.5px] leading-[16px] text-muted">{active ? 'Paylaşımı durdurmak için butona 1 saniye basılı tutun.' : 'Yanlış dokunmaları önlemek için SOS butonuna 1 saniye basılı tutun.'}</Text>
         </View>
 
-        <Text className="mb-3 mt-1 text-[9px] tracking-[1.1px] text-muted">{trUpper('Durum Bilgileri')}</Text>
-        <View className="overflow-hidden rounded-[20px] border-[0.5px] border-line bg-white">
-          {statusRows.map(([label, value], index) => (
-            <View key={label} className={`min-h-[52px] flex-row items-center justify-between border-line px-4 ${index === statusRows.length - 1 ? 'border-b-0' : 'border-b-[0.5px]'}`}>
-              <Text className="text-[10.5px] text-muted">{label}</Text>
-              <View className="flex-row items-center gap-2">
-                <View className={`h-1.5 w-1.5 rounded-full ${active ? 'bg-success' : 'bg-[#B8B3AE]'}`} />
-                <Text className={`text-[11px] font-medium ${active ? 'text-success' : 'text-[#555]'}`}>{value}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        <View className="mb-3 mt-7 flex-row items-end justify-between">
+        <View className="mb-3 mt-1 flex-row items-end justify-between">
           <Text className="text-[15px] font-medium tracking-[-0.2px] text-ink">İSG araçları</Text>
           <Text className="text-[8.5px] text-muted">Tüm hizmetler</Text>
         </View>
