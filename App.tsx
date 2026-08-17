@@ -93,7 +93,7 @@ function Portal() {
               />
             </TabScene>
           </View>
-          <BottomNav activeTab={activeTab} bottomInset={insets.bottom} onTab={setActiveTab} onOpenAi={() => openModal('aiChat')} />
+          <BottomNav activeTab={activeTab} bottomInset={insets.bottom} sosActive={sosActive} onTab={setActiveTab} onAiNavigate={openModal} />
         </View>
       ) : <LoginScreen topInset={insets.top} onLogin={finishLogin} />}
 

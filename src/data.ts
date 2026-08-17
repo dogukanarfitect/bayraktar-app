@@ -27,27 +27,53 @@ export const employeeServices: ActionItem[] = [
 export const newsItems: NewsItem[] = [
   {
     id: 'announcement', title: 'Mobil çalışan portalı kapsamı genişliyor', category: 'Duyuru', date: '05 Temmuz 2026',
-    image: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80',
-    summary: 'İK, İSG, doküman, servis, yemek ve duyuru akışları tek mobil deneyimde toplanıyor.',
-    detail: 'Yeni kapsamla çalışanlar İK soruları, anketler, yemek listesi, servis güzergahları, dokümanlar, bordro, İSG eğitimleri ve bildirim formlarına aynı mobil deneyim üzerinden erişebilecek.',
+    image: require('../assets/news-announcement.jpg'),
+    summary: 'İK, İSG, doküman, servis, yemek ve duyuru akışları tek mobil deneyimde toplanıyor. Yeni araçlar çalışanların günlük işlemlerini daha hızlı tamamlamasını sağlayacak.',
+    detail: [
+      'Mobil çalışan portalının yeni sürümüyle günlük iş akışında ihtiyaç duyulan hizmetler tek noktada bir araya getirildi. Çalışanlar İK sorularından yemek listesine, servis güzergâhlarından şirket duyurularına kadar birçok bilgiye mobil cihazlarından ulaşabilecek.',
+      'Güncellenen yapı; bordro ve özlük belgeleri, doktor takvimi, görüş ve öneri formu, İSG eğitimleri ile risk bildirim süreçlerini de kapsıyor. Sayfalar daha sade adımlar, anlaşılır durum mesajları ve hızlı yönlendirmelerle yeniden tasarlandı.',
+      'Portalın kapsamı çalışanlardan gelen geri bildirimler doğrultusunda geliştirilmeye devam edecek. Yeni özellikler yayınlandıkça bildirim merkezi üzerinden bilgilendirme yapılacak.',
+    ],
   },
   {
     id: 'safety', title: 'İSG eğitim haftası başladı', category: 'İSG', date: '04 Temmuz 2026',
-    image: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=900&q=80',
-    summary: 'Tüm ekipler için kısa modüller, saha uygulamaları ve acil durum tatbikatları takvime eklendi.',
-    detail: 'Program kapsamında risk farkındalığı, kişisel koruyucu donanım kullanımı ve acil durum iletişimi başlıkları ele alınıyor.',
+    image: require('../assets/news-safety.jpg'),
+    summary: 'Tüm ekipler için kısa eğitim modülleri, saha uygulamaları ve acil durum tatbikatları takvime eklendi. Program hafta boyunca farklı vardiyalarda devam edecek.',
+    detail: [
+      'İSG eğitim haftası kapsamında risk farkındalığı, kişisel koruyucu donanım kullanımı ve acil durum iletişimi başlıklarında yeni içerikler yayınlandı. Eğitimler üretim sahasındaki günlük örneklerle destekleniyor.',
+      'Çalışanlar kendilerine atanan modülleri İSG Eğitimleri sayfasından takip edebilir, kaldıkları yerden devam edebilir ve tamamlanma durumlarını görüntüleyebilir. Vardiya planlarına uygun oturum saatleri ekip yöneticileriyle ayrıca paylaşılacak.',
+      'Hafta sonunda gerçekleştirilecek saha tatbikatında tahliye yönlendirmeleri, toplanma alanları ve ekipler arası iletişim adımları uygulamalı olarak değerlendirilecek.',
+    ],
   },
   {
     id: 'community', title: 'Bayraktar aile buluşması duyuruldu', category: 'Etkinlik', date: '03 Temmuz 2026',
-    image: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=900&q=80',
-    summary: 'Temmuz ayı çalışan buluşması için kayıtlar açıldı. Katılım detayları İnsan Kaynakları ekranında.',
-    detail: 'Çalışanlar etkinlik kayıtlarını İnsan Kaynakları üzerinden tamamlayabilecek. Kontenjan ve servis planlaması başvuru sırasına göre güncellenecek.',
+    image: require('../assets/news-community.jpg'),
+    summary: 'Temmuz ayı çalışan buluşması için kayıtlar açıldı. Ailelerin de katılabileceği etkinliğin ulaşım ve program ayrıntıları mobil portalda yayınlandı.',
+    detail: [
+      'Bayraktar aile buluşması, çalışanların ve ailelerinin birlikte vakit geçirebileceği açık hava etkinlikleriyle bu yıl yeniden düzenleniyor. Programda çocuklara yönelik atölyeler, takım oyunları ve gün boyunca devam edecek sosyal alanlar yer alacak.',
+      'Katılım kaydı mobil portal üzerinden tamamlanabilecek. Kayıt sırasında katılımcı sayısı ve servis ihtiyacı belirtilebilecek; kontenjan ile ulaşım planı başvuru bilgilerine göre güncellenecek.',
+      'Etkinlik günü, buluşma saati ve servis duraklarına ilişkin son bilgiler kayıt yaptıran çalışanlara bildirim olarak iletilecek.',
+    ],
   },
   {
     id: 'hr', title: 'Çalışan dokümanları güncellendi', category: 'İK', date: '01 Temmuz 2026',
-    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80',
-    summary: 'İzin süreci, çalışan el kitabı ve özlük bilgi rehberi dokümanlar bölümüne eklendi.',
-    detail: 'İnsan Kaynakları dokümanları güncel versiyonlarıyla mobil doküman alanında yayınlandı.',
+    image: require('../assets/news-hr.jpg'),
+    summary: 'İzin süreci, çalışan el kitabı ve özlük bilgi rehberi güncel sürümleriyle Dokümanlar bölümüne eklendi. Eski revizyonların yerine yeni belgeler kullanılacak.',
+    detail: [
+      'İnsan Kaynakları tarafından kullanılan temel çalışan dokümanları gözden geçirilerek güncel sürümleri mobil portalda yayınlandı. İzin süreçleri, özlük bilgilerinin güncellenmesi ve şirket içi uygulamalar daha açık adımlarla yeniden anlatıldı.',
+      'Dokümanlar sayfasındaki kategori filtreleri kullanılarak ilgili belgeye hızlıca ulaşılabilir. Her belgenin yayın tarihi ve revizyon bilgisi liste üzerinde görüntülenebilir; PDF dosyaları cihaz üzerinden indirilebilir.',
+      'İçeriklerle ilgili soru veya düzeltme talepleri Görüş ve Öneri alanından İnsan Kaynakları ekibine iletilebilir.',
+    ],
+  },
+  {
+    id: 'production', title: 'Pınarbaşı tesisinde iyileştirme çalışmaları tamamlandı', category: 'Duyuru', date: '29 Haziran 2026',
+    image: require('../assets/news-production.jpg'),
+    summary: 'Üretim akışını daha güvenli ve verimli hale getiren saha düzenlemeleri tamamlandı. Yeni yerleşim ve yönlendirmeler vardiyalarla paylaşılmaya başlandı.',
+    detail: [
+      'Pınarbaşı tesisinde yürütülen saha iyileştirme çalışmaları planlanan takvim doğrultusunda tamamlandı. Çalışmalar kapsamında üretim alanlarındaki yaya yolları, malzeme geçiş noktaları ve görsel güvenlik yönlendirmeleri yeniden düzenlendi.',
+      'Yeni yerleşim planı, ekiplerin ortak alanlara daha güvenli ulaşmasını ve üretim içi hareketlerin daha düzenli ilerlemesini amaçlıyor. Vardiya başlangıç toplantılarında güncellenen alanlar ve kullanım kuralları ekip yöneticileri tarafından aktarılacak.',
+      'Çalışanlar sahada fark ettikleri ek iyileştirme ihtiyaçlarını Risk veya Olay Bildir ekranından İSG ekibine iletebilir.',
+    ],
   },
 ];
 

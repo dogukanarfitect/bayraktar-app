@@ -47,7 +47,7 @@ type DetailContentProps = DetailModalProps & {
 type ReplyPhase = 'idle' | 'thinking' | 'streaming';
 
 const AI_ASSISTANT_NAME = 'BAYRA';
-const AI_WELCOME_MESSAGE = 'Merhaba Mehmet, ben BAYRA. İzin bakiyeniz, servis saatleri, günlük yemek menüsü, bordro, dokümanlar ve İSG konularında size hızlıca yardımcı olabilirim. Nasıl yardımcı olabilirim?';
+const AI_WELCOME_MESSAGE = 'Merhaba Mehmet, ben BAYRA – Bayraktar Akıllı Hizmet Asistanı. İzin bakiyeniz, servis saatleri, günlük yemek menüsü, bordro, dokümanlar ve İSG konularında size hızlıca yardımcı olabilirim. Nasıl yardımcı olabilirim?';
 const HR_ASSISTANT_NAME = 'Derya Yıldız';
 const HR_WELCOME_MESSAGE = 'Merhaba Mehmet, ben Derya. İK Çalışan Deneyimi ekibindeyim. İzin, bordro, özlük bilgileri ve diğer İK süreçlerinizle ilgili taleplerinizde size yardımcı olabilirim.';
 const HR_SUGGESTIONS = ['İzin bakiyemi öğrenmek istiyorum', 'Bordroma nasıl ulaşabilirim?', 'Özlük bilgilerimi güncellemek istiyorum'];
@@ -363,10 +363,7 @@ function AiChatPage({ onClose, onNavigate, conversation, setConversation }: { on
             resizeMode="contain"
             style={{ width: 30, height: 30, tintColor: colors.brand }}
           />
-          <View>
-            <Text className="text-[16px] font-medium tracking-[-0.2px] text-ink">{AI_ASSISTANT_NAME}</Text>
-            <Text className="mt-[3px] text-[9px] text-muted">Bayraktar Akıllı Hizmet Asistanı</Text>
-          </View>
+          <Text className="text-[16px] font-medium tracking-[-0.2px] text-ink">{AI_ASSISTANT_NAME}</Text>
         </View>
         <View className="h-[52px] flex-1" />
       </View>
@@ -394,7 +391,7 @@ function AiChatPage({ onClose, onNavigate, conversation, setConversation }: { on
                   resizeMode="contain"
                   style={{ width: 18, height: 18, tintColor: colors.brand }}
                 />
-                <Text className="text-[9px] font-semibold tracking-[0.9px] text-brand">{trUpper(AI_ASSISTANT_NAME)}</Text>
+                <Text className="text-[8.5px] font-semibold tracking-[0.35px] text-brand">{trUpper(AI_ASSISTANT_NAME)}</Text>
               </View>
               <Text className="text-[12px] leading-5 text-[#3F3C39]">
                 {message.text}
@@ -927,7 +924,7 @@ function NewsDetailPage({ item, onClose }: { item: NewsItem; onClose: () => void
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 28, 44) }}>
         <View className="mx-5 mt-2 h-[258px] overflow-hidden rounded-[14px] bg-[#E9E5DF]">
-          <Image source={{ uri: item.image }} className="h-full w-full" resizeMode="cover" />
+          <Image source={item.image} className="h-full w-full" resizeMode="cover" />
         </View>
 
         <View className="px-5 pt-6">
@@ -942,10 +939,7 @@ function NewsDetailPage({ item, onClose }: { item: NewsItem; onClose: () => void
 
           <View className="my-6 h-[0.5px] bg-line" />
 
-          <Text className="text-[14px] leading-[24px] text-[#45413E]">{item.detail}</Text>
-          <Text className="mt-5 text-[14px] leading-[24px] text-[#45413E]">Bayraktar Grup Holding çalışan deneyimini daha hızlı, güvenli ve erişilebilir hale getiren geliştirmeleri düzenli olarak mobil portala eklemeye devam edecek.</Text>
-
-
+          {item.detail.map((paragraph, index) => <Text key={paragraph} className={`${index === 0 ? '' : 'mt-5'} text-[14px] leading-[24px] text-[#45413E]`}>{paragraph}</Text>)}
         </View>
       </ScrollView>
     </View>

@@ -1,3 +1,5 @@
+import type { ImageSourcePropType } from 'react-native';
+
 export type TabId = 'home' | 'news' | 'isg' | 'recognition' | 'profile';
 
 export type ModalId =
@@ -42,9 +44,9 @@ export type NewsItem = {
   title: string;
   category: 'Duyuru' | 'İSG' | 'Etkinlik' | 'İK';
   date: string;
-  image: string;
+  image: ImageSourcePropType;
   summary: string;
-  detail: string;
+  detail: string[];
 };
 
 export type RecognitionMember = {

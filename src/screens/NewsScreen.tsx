@@ -52,7 +52,7 @@ export function NewsScreen({ header, onNews }: { header: ReactNode; onNews: (ite
             className="h-[246px] overflow-hidden rounded-[18px] bg-white shadow-lg active:opacity-90"
             style={{ width: cardWidth }}
           >
-            <Image source={{ uri: item.image }} className="absolute inset-0 h-full w-full" resizeMode="cover" />
+            <Image source={item.image} className="absolute inset-0 h-full w-full" resizeMode="cover" />
             <NativeLinearGradient
               colors={['rgba(18,18,18,0.03)', 'rgba(18,18,18,0.22)', 'rgba(18,18,18,0.86)']}
               locations={[0, 0.45, 1]}
@@ -83,7 +83,7 @@ export function NewsScreen({ header, onNews }: { header: ReactNode; onNews: (ite
             onPress={() => onNews(item)}
             className={`min-h-[120px] flex-row items-center gap-[14px] border-line p-[13px] active:bg-[#FAF8F5] ${index === newsItems.length - 2 ? 'border-b-0' : 'border-b-[0.5px]'}`}
           >
-            <Image source={{ uri: item.image }} className="h-[92px] w-[108px] rounded-[10px]" resizeMode="cover" />
+            <Image source={item.image} className="h-[92px] w-[108px] rounded-[10px]" resizeMode="cover" />
             <View className="flex-1 py-[2px]">
               <NewsMeta item={item} />
               <Text className="mt-[9px] text-[14px] font-medium leading-[18px] tracking-[-0.2px] text-ink" numberOfLines={2}>{item.title}</Text>
