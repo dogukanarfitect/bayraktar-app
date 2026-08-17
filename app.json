@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Bayraktar Mobil Portal",
+    "slug": "bayraktar-mobil-portal",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo-bayraktar.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.arfitect.bayraktar",
+      "buildNumber": "1"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#F7F6F2",
+        "foregroundImage": "./assets/logo-bayraktar.png"
+      },
+      "package": "com.bayraktar.mobileportal",
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    }
+  }
+}
