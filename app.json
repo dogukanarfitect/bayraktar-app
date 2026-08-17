@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Bayraktar Mobil Portal",
+    "name": "Bayraktar App",
     "slug": "bayraktar-mobil-portal",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo-bayraktar.png",
+    "icon": "./assets/app-icon-burgundy.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": false,
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#F7F6F2",
+        "backgroundColor": "#9F2F4D",
         "foregroundImage": "./assets/logo-bayraktar.png"
       },
       "package": "com.bayraktar.mobileportal",
