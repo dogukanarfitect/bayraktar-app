@@ -1,5 +1,6 @@
 export { ActionRow } from './ActionRow';
 export { AppHeader } from './AppHeader';
+export { BayraThinkingIndicator } from './BayraThinkingIndicator';
 export { BottomNav } from './BottomNav';
 export { Icon } from './Icon';
 export { NativeLinearGradient } from './NativeLinearGradient';

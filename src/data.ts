@@ -92,8 +92,8 @@ export const recognitionMembers: RecognitionMember[] = [
 ];
 
 export const detailContent = {
-  foodMenu: { title: 'Yemek Listesi', subtitle: 'Bugünün menüsü · 13 Ağustos', icon: 'food' as IconName, rows: [
-    ['Günün Çorbası', 'Mercimek çorbası', '118 kcal'], ['Ana Yemek', 'Etli türlü', '420 kcal'], ['Yardımcı Yemek', 'Pirinç pilavı', '265 kcal'], ['Salata / Tatlı', 'Mevsim salata · Sütlaç', '180 kcal'],
+  foodMenu: { title: 'Yemek Listesi', subtitle: 'Bugünün menüsü · 17 Ağustos', icon: 'food' as IconName, rows: [
+    ['Günün Çorbası', 'Mercimek çorbası', '118 kcal'], ['Ana Yemek', 'Etli türlü', '420 kcal'], ['Yardımcı Yemek', 'Şehriyeli pirinç pilavı', '265 kcal'], ['Salata / Tatlı', 'Mevsim salata · Fırın sütlaç', '180 kcal'],
   ]},
   serviceRoutes: { title: 'Servisler', subtitle: 'İzmir üretim tesisleri', icon: 'bus' as IconName, rows: [
     ['Ege Endüstri · Pınarbaşı', 'Kemalpaşa Cad. No:280, Bornova', 'İzmir'], ['Ege Fren · Pınarbaşı', '7405/2 Sok. No:4, Bornova', 'İzmir'],

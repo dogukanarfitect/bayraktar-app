@@ -43,7 +43,7 @@ export function LoginScreen({ onLogin, topInset }: { onLogin: () => void; topIns
         >
           <Text className="mb-[25px] text-[24px] font-normal tracking-[-0.4px] text-ink">Hesabınıza giriş yapın</Text>
 
-          <Text className="mb-[8px] text-[13px] text-muted">Kullanıcı</Text>
+          <Text className="mb-[8px] text-[13px] text-muted">Kullanıcı Adı</Text>
           <TextInput
             value="mehmet.yilmaz"
             editable={false}

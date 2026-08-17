@@ -3,9 +3,9 @@ import { StatusBar } from 'expo-status-bar';
 import { Animated, Easing, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Icon, NativeLinearGradient } from '../components';
+import { BayraThinkingIndicator, Icon, NativeLinearGradient } from '../components';
 import { detailContent, newsItems, recognitionMembers, surveyQuestions } from '../data';
-import { getBayraErrorMessage, requestBayraReply, type BayraMessage } from '../services/bayraApi';
+import { createBayraSessionId, getBayraErrorMessage, requestBayraReply, type BayraMessage } from '../services/bayraApi';
 import { colors } from '../theme';
 import { trLower, trUpper } from '../turkishText';
 import type { IconName, ModalId, NewsItem } from '../types';
@@ -30,6 +30,7 @@ type ChatMessage = {
 type DetailContentProps = DetailModalProps & {
   aiConversation: BayraMessage[];
   setAiConversation: Dispatch<SetStateAction<BayraMessage[]>>;
+  aiSessionId: string;
   notificationUnreadIds: string[];
   setNotificationUnreadIds: Dispatch<SetStateAction<string[]>>;
 };
@@ -57,45 +58,56 @@ const notificationItems: { id: string; title: string; copy: string; time: string
   { id: 'payroll-ready', title: 'Temmuz bordronuz hazır', copy: 'Bordronuzu güvenli biçimde görüntüleyebilir veya PDF olarak indirebilirsiniz.', time: '12 Ağu', group: 'Bu hafta', category: 'Bordro', icon: 'payroll', accent: '#6554A3', surface: '#F0EEF8', unread: false, target: 'payroll' },
 ];
 
+const foodImages = {
+  lentilSoup: require('../../assets/food-lentil-soup.png'),
+  etliTurlu: require('../../assets/food-etli-turlu.png'),
+  ricePilaf: require('../../assets/food-rice-pilaf.png'),
+  saladSutlac: require('../../assets/food-salad-sutlac.png'),
+  ezogelinSoup: require('../../assets/food-ezogelin-soup.png'),
+  grilledKofte: require('../../assets/food-grilled-kofte.png'),
+  bulgurCacik: require('../../assets/food-bulgur-cacik.png'),
+  cobanSalad: require('../../assets/food-coban-salad.png'),
+} as const;
+
 const weeklyFoodMenus = [
   {
-    day: 'Pzt', date: '17', fullDate: '17 Ağustos · Pazartesi', today: true, title: 'Etli türlü menüsü', total: '983 kcal', hero: require('../../assets/food-beef-stew.jpg'), items: [
-      { category: 'Günün çorbası', name: 'Mercimek çorbası', calories: '118 kcal', image: require('../../assets/food-lentil-soup.jpg') },
-      { category: 'Ana yemek', name: 'Etli türlü', calories: '420 kcal', image: require('../../assets/food-beef-stew.jpg') },
-      { category: 'Yardımcı yemek', name: 'Pirinç pilavı', calories: '265 kcal', image: require('../../assets/food-rice.jpg') },
-      { category: 'Salata ve tatlı', name: 'Mevsim salata · Sütlaç', calories: '180 kcal', image: require('../../assets/food-rice-pudding.jpg') },
+    day: 'Pzt', date: '17', fullDate: '17 Ağustos · Pazartesi', today: true, title: 'Etli türlü menüsü', total: '983 kcal', hero: foodImages.etliTurlu, items: [
+      { category: 'Günün çorbası', name: 'Mercimek çorbası', calories: '118 kcal', image: foodImages.lentilSoup },
+      { category: 'Ana yemek', name: 'Etli türlü', calories: '420 kcal', image: foodImages.etliTurlu },
+      { category: 'Yardımcı yemek', name: 'Şehriyeli pirinç pilavı', calories: '265 kcal', image: foodImages.ricePilaf },
+      { category: 'Salata ve tatlı', name: 'Mevsim salata · Fırın sütlaç', calories: '180 kcal', image: foodImages.saladSutlac },
     ]
   },
   {
-    day: 'Sal', date: '18', fullDate: '18 Ağustos · Salı', today: false, title: 'Izgara köfte menüsü', total: '920 kcal', hero: require('../../assets/food-beef-stew.jpg'), items: [
-      { category: 'Günün çorbası', name: 'Ezogelin çorbası', calories: '132 kcal', image: require('../../assets/food-lentil-soup.jpg') },
-      { category: 'Ana yemek', name: 'Izgara köfte', calories: '405 kcal', image: require('../../assets/food-beef-stew.jpg') },
-      { category: 'Yardımcı yemek', name: 'Bulgur pilavı · Cacık', calories: '248 kcal', image: require('../../assets/food-rice.jpg') },
-      { category: 'Salata ve meyve', name: 'Çoban salata · Mevsim meyvesi', calories: '135 kcal', image: require('../../assets/food-rice-pudding.jpg') },
+    day: 'Sal', date: '18', fullDate: '18 Ağustos · Salı', today: false, title: 'Izgara köfte menüsü', total: '920 kcal', hero: foodImages.grilledKofte, items: [
+      { category: 'Günün çorbası', name: 'Ezogelin çorbası', calories: '132 kcal', image: foodImages.ezogelinSoup },
+      { category: 'Ana yemek', name: 'Izgara köfte', calories: '405 kcal', image: foodImages.grilledKofte },
+      { category: 'Yardımcı yemek', name: 'Domatesli bulgur pilavı · Cacık', calories: '248 kcal', image: foodImages.bulgurCacik },
+      { category: 'Salata ve meyve', name: 'Çoban salata · Mevsim meyvesi', calories: '135 kcal', image: foodImages.cobanSalad },
     ]
   },
   {
-    day: 'Çar', date: '19', fullDate: '19 Ağustos · Çarşamba', today: false, title: 'Sebzeli tavuk menüsü', total: '875 kcal', hero: require('../../assets/food-beef-stew.jpg'), items: [
-      { category: 'Günün çorbası', name: 'Domates çorbası', calories: '105 kcal', image: require('../../assets/food-lentil-soup.jpg') },
-      { category: 'Ana yemek', name: 'Sebzeli tavuk', calories: '380 kcal', image: require('../../assets/food-beef-stew.jpg') },
-      { category: 'Yardımcı yemek', name: 'Peynirli makarna · Yoğurt', calories: '270 kcal', image: require('../../assets/food-rice.jpg') },
-      { category: 'Salata ve tatlı', name: 'Akdeniz salata · Kazandibi', calories: '120 kcal', image: require('../../assets/food-rice-pudding.jpg') },
+    day: 'Çar', date: '19', fullDate: '19 Ağustos · Çarşamba', today: false, title: 'Etli türlü menüsü', total: '952 kcal', hero: foodImages.etliTurlu, items: [
+      { category: 'Günün çorbası', name: 'Ezogelin çorbası', calories: '132 kcal', image: foodImages.ezogelinSoup },
+      { category: 'Ana yemek', name: 'Etli türlü', calories: '420 kcal', image: foodImages.etliTurlu },
+      { category: 'Yardımcı yemek', name: 'Şehriyeli pirinç pilavı', calories: '265 kcal', image: foodImages.ricePilaf },
+      { category: 'Salata ve meyve', name: 'Çoban salata · Mevsim meyvesi', calories: '135 kcal', image: foodImages.cobanSalad },
     ]
   },
   {
-    day: 'Per', date: '20', fullDate: '20 Ağustos · Perşembe', today: false, title: 'Kuru fasulye menüsü', total: '945 kcal', hero: require('../../assets/food-beef-stew.jpg'), items: [
-      { category: 'Günün çorbası', name: 'Yayla çorbası', calories: '126 kcal', image: require('../../assets/food-lentil-soup.jpg') },
-      { category: 'Ana yemek', name: 'Etli kuru fasulye', calories: '410 kcal', image: require('../../assets/food-beef-stew.jpg') },
-      { category: 'Yardımcı yemek', name: 'Pirinç pilavı · Turşu', calories: '270 kcal', image: require('../../assets/food-rice.jpg') },
-      { category: 'Salata ve tatlı', name: 'Mevsim salata · Revani', calories: '139 kcal', image: require('../../assets/food-rice-pudding.jpg') },
+    day: 'Per', date: '20', fullDate: '20 Ağustos · Perşembe', today: false, title: 'Izgara köfte menüsü', total: '951 kcal', hero: foodImages.grilledKofte, items: [
+      { category: 'Günün çorbası', name: 'Mercimek çorbası', calories: '118 kcal', image: foodImages.lentilSoup },
+      { category: 'Ana yemek', name: 'Izgara köfte', calories: '405 kcal', image: foodImages.grilledKofte },
+      { category: 'Yardımcı yemek', name: 'Domatesli bulgur pilavı · Cacık', calories: '248 kcal', image: foodImages.bulgurCacik },
+      { category: 'Salata ve tatlı', name: 'Mevsim salata · Fırın sütlaç', calories: '180 kcal', image: foodImages.saladSutlac },
     ]
   },
   {
-    day: 'Cum', date: '21', fullDate: '21 Ağustos · Cuma', today: false, title: 'Fırın tavuk menüsü', total: '890 kcal', hero: require('../../assets/food-beef-stew.jpg'), items: [
-      { category: 'Günün çorbası', name: 'Tarhana çorbası', calories: '115 kcal', image: require('../../assets/food-lentil-soup.jpg') },
-      { category: 'Ana yemek', name: 'Fırın tavuk', calories: '390 kcal', image: require('../../assets/food-beef-stew.jpg') },
-      { category: 'Yardımcı yemek', name: 'Sebzeli bulgur pilavı · Ayran', calories: '260 kcal', image: require('../../assets/food-rice.jpg') },
-      { category: 'Salata ve tatlı', name: 'Gavurdağı salata · Sütlaç', calories: '125 kcal', image: require('../../assets/food-rice-pudding.jpg') },
+    day: 'Cum', date: '21', fullDate: '21 Ağustos · Cuma', today: false, title: 'Etli türlü menüsü', total: '980 kcal', hero: foodImages.etliTurlu, items: [
+      { category: 'Günün çorbası', name: 'Ezogelin çorbası', calories: '132 kcal', image: foodImages.ezogelinSoup },
+      { category: 'Ana yemek', name: 'Etli türlü', calories: '420 kcal', image: foodImages.etliTurlu },
+      { category: 'Yardımcı yemek', name: 'Domatesli bulgur pilavı · Cacık', calories: '248 kcal', image: foodImages.bulgurCacik },
+      { category: 'Salata ve tatlı', name: 'Mevsim salata · Fırın sütlaç', calories: '180 kcal', image: foodImages.saladSutlac },
     ]
   },
 ] as const;
@@ -108,12 +120,13 @@ export function DetailModal(props: DetailModalProps) {
   const [aiConversation, setAiConversation] = useState<BayraMessage[]>([
     { role: 'assistant', text: AI_WELCOME_MESSAGE },
   ]);
+  const aiSessionId = useRef(createBayraSessionId()).current;
   const [notificationUnreadIds, setNotificationUnreadIds] = useState(() => notificationItems.filter((item) => item.unread).map((item) => item.id));
 
   return (
     <Modal visible={!!props.modal} animationType="slide" presentationStyle={fullScreen ? 'fullScreen' : 'pageSheet'} onRequestClose={props.onClose}>
       <ModalScene key={props.modal ?? 'none'}>
-        <DetailContent {...props} aiConversation={aiConversation} setAiConversation={setAiConversation} notificationUnreadIds={notificationUnreadIds} setNotificationUnreadIds={setNotificationUnreadIds} />
+        <DetailContent {...props} aiConversation={aiConversation} setAiConversation={setAiConversation} aiSessionId={aiSessionId} notificationUnreadIds={notificationUnreadIds} setNotificationUnreadIds={setNotificationUnreadIds} />
       </ModalScene>
     </Modal>
   );
@@ -144,7 +157,7 @@ function ModalScene({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DetailContent({ modal, selectedNews, onClose, onNavigate, onSent, aiConversation, setAiConversation, notificationUnreadIds, setNotificationUnreadIds }: DetailContentProps) {
+function DetailContent({ modal, selectedNews, onClose, onNavigate, onSent, aiConversation, setAiConversation, aiSessionId, notificationUnreadIds, setNotificationUnreadIds }: DetailContentProps) {
   const insets = useSafeAreaInsets();
   const detailScrollRef = useRef<ScrollView>(null);
   const hrReplyDelayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -163,7 +176,7 @@ function DetailContent({ modal, selectedNews, onClose, onNavigate, onSent, aiCon
   }, []);
 
   if (!modal) return null;
-  if (modal === 'aiChat') return <AiChatPage onClose={onClose} onNavigate={onNavigate} conversation={aiConversation} setConversation={setAiConversation} />;
+  if (modal === 'aiChat') return <AiChatPage onClose={onClose} onNavigate={onNavigate} conversation={aiConversation} setConversation={setAiConversation} sessionId={aiSessionId} />;
   if (modal === 'foodMenu') return <FoodMenuPage onClose={onClose} />;
   if (modal === 'serviceRoutes') return <CompanyServiceRoutesPage onClose={onClose} />;
   if (modal === 'survey') return <SurveyPage onClose={onClose} />;
@@ -294,7 +307,7 @@ function DetailContent({ modal, selectedNews, onClose, onNavigate, onSent, aiCon
   );
 }
 
-function AiChatPage({ onClose, onNavigate, conversation, setConversation }: { onClose: () => void; onNavigate: (id: ModalId) => void; conversation: BayraMessage[]; setConversation: Dispatch<SetStateAction<BayraMessage[]>> }) {
+function AiChatPage({ onClose, onNavigate, conversation, setConversation, sessionId }: { onClose: () => void; onNavigate: (id: ModalId) => void; conversation: BayraMessage[]; setConversation: Dispatch<SetStateAction<BayraMessage[]>>; sessionId: string }) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const streamTimer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -317,7 +330,7 @@ function AiChatPage({ onClose, onNavigate, conversation, setConversation }: { on
     setConversation(nextConversation);
 
     try {
-      const response = await requestBayraReply(nextConversation);
+      const response = await requestBayraReply(nextConversation, sessionId);
       let cursor = 0;
       setConversation((current) => [...current, { role: 'assistant', text: '' }]);
       setReplyPhase('streaming');
@@ -411,12 +424,7 @@ function AiChatPage({ onClose, onNavigate, conversation, setConversation }: { on
             </View>
           ) : null}
 
-          {replyPhase === 'thinking' ? (
-            <View className="flex-row items-center gap-2">
-              <View className="h-1.5 w-1.5 rounded-full bg-brand/70" />
-              <Text className="text-[10px] text-muted">{AI_ASSISTANT_NAME} yanıt hazırlıyor…</Text>
-            </View>
-          ) : null}
+          {replyPhase === 'thinking' ? <BayraThinkingIndicator /> : null}
         </View>
       </ScrollView>
 

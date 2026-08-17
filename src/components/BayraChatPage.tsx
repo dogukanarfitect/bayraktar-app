@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getBayraErrorMessage, requestBayraReply, type BayraMessage } from '../services/bayraApi';
+import { createBayraSessionId, getBayraErrorMessage, requestBayraReply, type BayraMessage } from '../services/bayraApi';
 import { colors } from '../theme';
 import { trUpper } from '../turkishText';
 import type { ModalId } from '../types';
+import { BayraThinkingIndicator } from './BayraThinkingIndicator';
 import { Icon } from './Icon';
 
 type ReplyPhase = 'idle' | 'thinking' | 'streaming';
@@ -17,6 +18,7 @@ export function BayraChatPage({ onClose, onNavigate }: { onClose: () => void; on
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const streamTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sessionId = useRef(createBayraSessionId()).current;
   const [draft, setDraft] = useState('');
   const [replyPhase, setReplyPhase] = useState<ReplyPhase>('idle');
   const [conversation, setConversation] = useState<BayraMessage[]>([{ role: 'assistant', text: AI_WELCOME_MESSAGE }]);
@@ -36,7 +38,7 @@ export function BayraChatPage({ onClose, onNavigate }: { onClose: () => void; on
     setConversation(nextConversation);
 
     try {
-      const response = await requestBayraReply(nextConversation);
+      const response = await requestBayraReply(nextConversation, sessionId);
       let cursor = 0;
       setConversation((current) => [...current, { role: 'assistant', text: '' }]);
       setReplyPhase('streaming');
@@ -121,12 +123,7 @@ export function BayraChatPage({ onClose, onNavigate }: { onClose: () => void; on
             </View>
           ) : null}
 
-          {replyPhase === 'thinking' ? (
-            <View className="flex-row items-center gap-2">
-              <View className="h-1.5 w-1.5 rounded-full bg-brand/70" />
-              <Text className="text-[10px] text-muted">{AI_ASSISTANT_NAME} yanıt hazırlıyor…</Text>
-            </View>
-          ) : null}
+          {replyPhase === 'thinking' ? <BayraThinkingIndicator /> : null}
         </View>
       </ScrollView>
 
