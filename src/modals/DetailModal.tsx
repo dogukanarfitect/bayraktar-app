@@ -4,7 +4,7 @@ import { Animated, Easing, Image, KeyboardAvoidingView, Modal, Platform, Pressab
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BayraThinkingIndicator, Icon, NativeLinearGradient } from '../components';
-import { detailContent, newsItems, recognitionMembers, surveyQuestions, weeklyFoodMenus } from '../data';
+import { detailContent, getWeeklyFoodMenus, newsItems, recognitionMembers, surveyQuestions } from '../data';
 import { createBayraSessionId, getBayraErrorMessage, requestBayraReply, type BayraMessage } from '../services/bayraApi';
 import { createHrSessionId, getHrErrorMessage, requestHrReply } from '../services/hrApi';
 import { colors } from '../theme';
@@ -97,20 +97,50 @@ const foodHeroImages: Record<string, (typeof foodImages)[keyof typeof foodImages
   'Izgara köfte menüsü': foodImages.grilledKofte,
 };
 
-const foodMenuPages = weeklyFoodMenus.map((menu) => {
-  const dayNumber = Number(menu.date.split('-')[2]);
-  return {
-    ...menu,
-    dayLabel: foodDayLabels[menu.day] ?? menu.day.slice(0, 3),
-    dateLabel: String(dayNumber),
-    fullDate: `${dayNumber} Ağustos · ${menu.day}`,
-    hero: foodHeroImages[menu.title] ?? foodImages.etliTurlu,
-    items: menu.items.map((item) => ({
-      ...item,
-      image: foodItemImages[item.name] ?? foodImages.etliTurlu,
-    })),
-  };
-});
+function parseDateKey(value: string) {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatMonthName(date: Date) {
+  const month = date.toLocaleDateString('tr-TR', { month: 'long' });
+  return month.charAt(0).toLocaleUpperCase('tr-TR') + month.slice(1);
+}
+
+function formatWeekRange(startKey: string, endKey: string) {
+  const start = parseDateKey(startKey);
+  const end = parseDateKey(endKey);
+  const startMonth = formatMonthName(start);
+  const endMonth = formatMonthName(end);
+
+  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+    return `${start.getDate()}–${end.getDate()} ${startMonth} ${start.getFullYear()}`;
+  }
+
+  if (start.getFullYear() === end.getFullYear()) {
+    return `${start.getDate()} ${startMonth}–${end.getDate()} ${endMonth} ${start.getFullYear()}`;
+  }
+
+  return `${start.getDate()} ${startMonth} ${start.getFullYear()}–${end.getDate()} ${endMonth} ${end.getFullYear()}`;
+}
+
+function buildFoodMenuPages(from = new Date()) {
+  return getWeeklyFoodMenus(from).map((menu) => {
+    const date = parseDateKey(menu.date);
+    const dayNumber = date.getDate();
+    return {
+      ...menu,
+      dayLabel: foodDayLabels[menu.day] ?? menu.day.slice(0, 3),
+      dateLabel: String(dayNumber),
+      fullDate: `${dayNumber} ${formatMonthName(date)} · ${menu.day}`,
+      hero: foodHeroImages[menu.title] ?? foodImages.etliTurlu,
+      items: menu.items.map((item) => ({
+        ...item,
+        image: foodItemImages[item.name] ?? foodImages.etliTurlu,
+      })),
+    };
+  });
+}
 
 type LegacyServiceRoute = { id: string; name: string; direction: string; departure: string; duration: string; occupancy: number; plate: string; stops: string[]; coordinates: { latitude: number; longitude: number }[] };
 const serviceRouteItems: LegacyServiceRoute[] = [];
@@ -434,7 +464,12 @@ function AiChatPage({ onClose, onNavigate, conversation, setConversation, sessio
 
 function FoodMenuPage({ onClose }: { onClose: () => void }) {
   const insets = useSafeAreaInsets();
-  const [selectedDay, setSelectedDay] = useState(0);
+  const foodMenuPages = useMemo(() => buildFoodMenuPages(), []);
+  const weekRangeLabel = formatWeekRange(foodMenuPages[0].date, foodMenuPages[foodMenuPages.length - 1].date);
+  const [selectedDay, setSelectedDay] = useState(() => {
+    const todayIndex = foodMenuPages.findIndex((menu) => menu.today);
+    return todayIndex >= 0 ? todayIndex : 0;
+  });
   const selectedMenu = foodMenuPages[selectedDay];
   const menuTransition = useRef(new Animated.Value(1)).current;
   const menuTransitionDirection = useRef(1);
@@ -476,7 +511,7 @@ function FoodMenuPage({ onClose }: { onClose: () => void }) {
       >
         <View className="mb-5 overflow-hidden rounded-[22px] border-[0.5px] border-line bg-white">
           <View className="flex-row items-center justify-between px-4 py-3.5">
-            <View><Text className="text-[13px] font-medium text-ink">Bu haftanın menüsü</Text><Text className="mt-1 text-[8.5px] text-muted">17–21 Ağustos 2026</Text></View>
+            <View><Text className="text-[13px] font-medium text-ink">Bu haftanın menüsü</Text><Text className="mt-1 text-[8.5px] text-muted">{weekRangeLabel}</Text></View>
             <View className="flex-row items-center gap-2"><Icon name="calendar" size={15} color={colors.brand} /><Text className="text-[8.5px] font-medium text-brand">5 iş günü</Text></View>
           </View>
           <View className="h-[0.5px] bg-line" />
@@ -538,7 +573,7 @@ function FoodMenuPage({ onClose }: { onClose: () => void }) {
             <MenuMetric label="YER" value="Tesis 2" />
           </View>
 
-          <CafeteriaHoursNotice isToday={selectedMenu.today} isFriday={selectedDay === 4} />
+          <CafeteriaHoursNotice isToday={selectedMenu.today} isFriday={selectedMenu.day === 'Cuma'} />
 
           <View className="mb-3 mt-7 flex-row items-end justify-between">
             <View>

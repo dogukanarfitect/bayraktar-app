@@ -67,7 +67,7 @@ export function HomeScreen({ topInset, notifCount, onOpen, onNews, onProfile }: 
           </Pressable>
           <View className="h-[70px] w-[124px] justify-center rounded-[17px] bg-white/10 px-[13px]">
             <Text className="text-[9px] text-white/60">Tarih</Text>
-            <Text className="mt-1.5 text-[15px] text-white" numberOfLines={1} adjustsFontSizeToFit>14 Ağustos</Text>
+            <Text className="mt-1.5 text-[15px] text-white" numberOfLines={1} adjustsFontSizeToFit>{new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: 'long' })}</Text>
           </View>
         </View>
         <View className="mt-[11px] flex-row gap-[9px]">

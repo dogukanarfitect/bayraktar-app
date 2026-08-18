@@ -106,13 +106,24 @@ export type WeeklyFoodMenu = {
   items: FoodMenuItem[];
 };
 
-export const weeklyFoodMenus: WeeklyFoodMenu[] = [
+function formatDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export function getWorkWeekMonday(from = new Date()) {
+  const weekday = from.getDay();
+  const offset = weekday === 0 ? -6 : 1 - weekday;
+  return new Date(from.getFullYear(), from.getMonth(), from.getDate() + offset);
+}
+
+const weeklyFoodMenuItems: Omit<WeeklyFoodMenu, 'date' | 'today'>[] = [
   {
     day: 'Pazartesi',
-    date: '2026-08-17',
     title: 'Etli türlü menüsü',
     total: '983 kcal',
-    today: true,
     items: [
       { category: 'Günün çorbası', name: 'Mercimek çorbası', calories: '118 kcal' },
       { category: 'Ana yemek', name: 'Etli türlü', calories: '420 kcal' },
@@ -122,10 +133,8 @@ export const weeklyFoodMenus: WeeklyFoodMenu[] = [
   },
   {
     day: 'Salı',
-    date: '2026-08-18',
     title: 'Izgara köfte menüsü',
     total: '920 kcal',
-    today: false,
     items: [
       { category: 'Günün çorbası', name: 'Ezogelin çorbası', calories: '132 kcal' },
       { category: 'Ana yemek', name: 'Izgara köfte', calories: '405 kcal' },
@@ -135,10 +144,8 @@ export const weeklyFoodMenus: WeeklyFoodMenu[] = [
   },
   {
     day: 'Çarşamba',
-    date: '2026-08-19',
     title: 'Etli türlü menüsü',
     total: '952 kcal',
-    today: false,
     items: [
       { category: 'Günün çorbası', name: 'Ezogelin çorbası', calories: '132 kcal' },
       { category: 'Ana yemek', name: 'Etli türlü', calories: '420 kcal' },
@@ -148,10 +155,8 @@ export const weeklyFoodMenus: WeeklyFoodMenu[] = [
   },
   {
     day: 'Perşembe',
-    date: '2026-08-20',
     title: 'Izgara köfte menüsü',
     total: '951 kcal',
-    today: false,
     items: [
       { category: 'Günün çorbası', name: 'Mercimek çorbası', calories: '118 kcal' },
       { category: 'Ana yemek', name: 'Izgara köfte', calories: '405 kcal' },
@@ -161,10 +166,8 @@ export const weeklyFoodMenus: WeeklyFoodMenu[] = [
   },
   {
     day: 'Cuma',
-    date: '2026-08-21',
     title: 'Etli türlü menüsü',
     total: '980 kcal',
-    today: false,
     items: [
       { category: 'Günün çorbası', name: 'Ezogelin çorbası', calories: '132 kcal' },
       { category: 'Ana yemek', name: 'Etli türlü', calories: '420 kcal' },
@@ -174,8 +177,21 @@ export const weeklyFoodMenus: WeeklyFoodMenu[] = [
   },
 ];
 
+export function getWeeklyFoodMenus(from = new Date()): WeeklyFoodMenu[] {
+  const monday = getWorkWeekMonday(from);
+  const todayKey = formatDateKey(from);
+
+  return weeklyFoodMenuItems.map((menu, index) => {
+    const date = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + index);
+    const dateKey = formatDateKey(date);
+    return { ...menu, date: dateKey, today: dateKey === todayKey };
+  });
+}
+
+export const weeklyFoodMenus = getWeeklyFoodMenus();
+
 export const detailContent = {
-  foodMenu: { title: 'Yemek Listesi', subtitle: 'Bugünün menüsü · 17 Ağustos', icon: 'food' as IconName, rows: [
+  foodMenu: { title: 'Yemek Listesi', subtitle: 'Bugünün menüsü', icon: 'food' as IconName, rows: [
     ['Günün Çorbası', 'Mercimek çorbası', '118 kcal'], ['Ana Yemek', 'Etli türlü', '420 kcal'], ['Yardımcı Yemek', 'Şehriyeli pirinç pilavı', '265 kcal'], ['Salata / Tatlı', 'Mevsim salata · Fırın sütlaç', '180 kcal'],
   ]},
   serviceRoutes: { title: 'Servisler', subtitle: 'İzmir üretim tesisleri', icon: 'bus' as IconName, rows: [
