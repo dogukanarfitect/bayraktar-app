@@ -8,6 +8,23 @@
     "userInterfaceStyle": "light",
     "plugins": [
       [
+        "@react-native-firebase/app",
+        {
+          "ios": {
+            "disableSPM": true
+          }
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static",
+            "forceStaticLinking": ["RNFBApp", "RNFBRemoteConfig"]
+          }
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "Risk veya olay bildirimine fotoğraf ekleyebilmeniz için galeri erişimi gereklidir."
@@ -17,7 +34,8 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.arfitect.bayraktar",
-      "buildNumber": "1"
+      "buildNumber": "1",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {

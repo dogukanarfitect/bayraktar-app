@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Animated, Easing, View } from 'react-native';
+import { ActivityIndicator, Animated, Easing, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppHeader, BottomNav, SplashScreen } from './src/components';
 import { DetailModal } from './src/modals';
 import { HomeScreen, LoginScreen, NewsScreen, ProfileScreen, RecognitionScreen, SafetyScreen } from './src/screens';
 import type { ModalId, NewsItem, TabId } from './src/types';
+import { ForceUpdateScreen } from './src/update/ForceUpdateScreen';
+import { OptionalUpdateModal } from './src/update/OptionalUpdateModal';
+import { useIosUpdateGate } from './src/update/useIosUpdateGate';
 import './global.css';
 
 export default function App() {
@@ -14,6 +17,7 @@ export default function App() {
 
 function Portal() {
   const insets = useSafeAreaInsets();
+  const updateGate = useIosUpdateGate();
   const [splashVisible, setSplashVisible] = useState(true);
   const [loggedIn, setLoggedIn] = useState(false);
   const [loginTransition, setLoginTransition] = useState(false);
@@ -70,6 +74,39 @@ function Portal() {
     setLoggedIn(false);
   }, [closeModal]);
 
+  useEffect(() => {
+    if (updateGate.decision.kind === 'force') {
+      setModal(null);
+      setReturnModal(null);
+      setSelectedNews(null);
+    }
+  }, [updateGate.decision.kind]);
+
+  // Replace the entire portal so native modals and other interactive content unmount.
+  if (updateGate.decision.kind === 'force' && updateGate.decision.policy) {
+    return (
+      <View className="flex-1 bg-brand">
+        <StatusBar style="light" />
+        <ForceUpdateScreen
+          policy={updateGate.decision.policy}
+          refreshing={updateGate.initializing || updateGate.refreshing}
+          onUpdate={() => { void updateGate.openStore(); }}
+          onRetry={() => { void updateGate.refresh(); }}
+        />
+      </View>
+    );
+  }
+
+  if (updateGate.initializing) {
+    return (
+      <View testID="ios-update-loading" className="flex-1 items-center justify-center bg-brand" accessibilityRole="progressbar" accessibilityLabel="Güncelleme kontrol ediliyor">
+        <StatusBar style="light" />
+        <ActivityIndicator size="large" color="#FFFFFF" />
+        <Text className="mt-4 text-[14px] text-white">Güncelleme kontrol ediliyor…</Text>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-white">
       <StatusBar style={lightStatusBar ? 'light' : 'dark'} />
@@ -99,6 +136,13 @@ function Portal() {
 
       {splashVisible || loginTransition ? <SplashScreen onDone={() => setSplashVisible(false)} persistent={loginTransition} /> : null}
       <DetailModal modal={modal} selectedNews={selectedNews} onClose={closeModal} onNavigate={navigateModal} onSent={() => setSentRecognitionCount((value) => value + 1)} />
+      {updateGate.decision.kind === 'optional' && updateGate.decision.policy ? (
+        <OptionalUpdateModal
+          policy={updateGate.decision.policy}
+          onUpdate={() => { void updateGate.openStore(); }}
+          onLater={updateGate.dismissOptional}
+        />
+      ) : null}
     </View>
   );
 }
