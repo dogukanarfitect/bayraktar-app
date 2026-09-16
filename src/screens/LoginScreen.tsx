@@ -10,6 +10,8 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import * as Application from 'expo-application';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeLinearGradient, StripedBackground } from '../components';
 
 const MOCK_USERNAME = 'mehmet.yilmaz';
@@ -23,6 +25,8 @@ export function LoginScreen({
   topInset: number;
 }) {
   const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const appVersion = Application.nativeApplicationVersion;
 
   const heroHeight = Math.max(
     430,
@@ -185,7 +189,16 @@ export function LoginScreen({
           </Pressable>
         </View>
 
-        <View className="min-h-[44px] flex-1" />
+        <View
+          className="min-h-[44px] flex-1 items-center justify-end"
+          style={{ paddingBottom: Math.max(insets.bottom, 16) + 8 }}
+        >
+          {appVersion ? (
+            <Text testID="login-app-version" className="text-[12px] tracking-[-0.2px] text-muted">
+              Bayraktar App version {appVersion}
+            </Text>
+          ) : null}
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
